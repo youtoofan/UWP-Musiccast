@@ -7,8 +7,8 @@
     <ProjectGuid>{4DEF1620-A258-4BD5-8EF0-F6AD41E82C26}</ProjectGuid>
     <OutputType>AppContainerExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>App4</RootNamespace>
-    <AssemblyName>App4</AssemblyName>
+    <RootNamespace>Musiccast</RootNamespace>
+    <AssemblyName>MusiccastUWP</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.17134.0</TargetPlatformVersion>
@@ -124,6 +124,7 @@
     <Compile Include="Helpers\BooleanToOpacityConverter.cs" />
     <Compile Include="Helpers\EnumToBooleanConverter.cs" />
     <Compile Include="Helpers\Json.cs" />
+    <Compile Include="Helpers\ObjectToDeviceConverter.cs" />
     <Compile Include="Helpers\ParameterRelayCommand.cs" />
     <Compile Include="Helpers\SettingsStorageExtensions.cs" />
     <Compile Include="Helpers\UriToBitmapConverter.cs" />

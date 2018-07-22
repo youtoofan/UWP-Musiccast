@@ -197,4 +197,7 @@
     <value>Settings</value>
     <comment>Page title for SettingsPage</comment>
   </data>
+  <data name="DeviceDetailPage_Title.Text" xml:space="preserve">
+    <value>Details</value>
+  </data>
 </root>

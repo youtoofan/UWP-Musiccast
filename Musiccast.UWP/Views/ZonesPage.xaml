@@ -20,6 +20,7 @@
         <helpers:UriToBitmapConverter x:Name="uriToBitmapConverter"/>
         <helpers:BooleanToColorConverter x:Name="booleanToColorConverter"/>
         <helpers:BooleanToOpacityConverter x:Name="booleanToOpacityConverter"/>
+        <helpers:ObjectToDeviceConverter x:Name="objectToDeviceConverter"/>
         <DataTemplate x:Name="ContactListViewTemplate" x:DataType="local:Device">
             <Grid HorizontalAlignment="Stretch" Opacity="{x:Bind IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" Padding="{StaticResource FlyoutContentThemePadding}" Background="OrangeRed">
                 <Grid.RowDefinitions>
@@ -81,6 +82,7 @@
                                    DesiredWidth="500"
                                    SelectionMode="Single"
                                    IsItemClickEnabled="True"
+                                   SelectedItem="{x:Bind ViewModel.SelectedDevice, Mode=TwoWay, Converter={StaticResource objectToDeviceConverter}}"
                                    ItemsSource="{x:Bind ViewModel.Devices}" Grid.Row="1"
                                    ItemClickCommand="{x:Bind ViewModel.ViewDeviceDetailCommand}"
                   ItemTemplate="{StaticResource ContactListViewTemplate}"/>

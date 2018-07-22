@@ -26,6 +26,8 @@ namespace App4.ViewModels
         public ObservableCollection<Device> Devices { get; set; }
         public Timer refreshTimer;
 
+        public Device SelectedDevice { get; set; }
+
         public ICommand AddDeviceCommand
         {
             get
@@ -38,7 +40,10 @@ namespace App4.ViewModels
         {
             get
             {
-                return new RelayCommand(() => navigationService.Navigate(typeof(DeviceDetailPageViewModel).FullName));
+                return new RelayCommand(() =>
+                {
+                    navigationService.Navigate(typeof(DeviceDetailPageViewModel).FullName, this.SelectedDevice);
+                });
             }
         }
 
