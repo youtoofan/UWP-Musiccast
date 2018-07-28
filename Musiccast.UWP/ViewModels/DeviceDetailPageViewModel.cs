@@ -13,6 +13,12 @@ namespace App4.ViewModels
         public DeviceDetailPageViewModel(NavigationServiceEx navigationService)
         {
             this.navigationService = navigationService;
+            navigationService.Navigated += NavigationService_Navigated;
+        }
+
+        private void NavigationService_Navigated(object sender, Windows.UI.Xaml.Navigation.NavigationEventArgs e)
+        {
+            this.Device = e.Parameter as Device;
         }
 
         public Device Device

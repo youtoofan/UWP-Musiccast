@@ -58,28 +58,35 @@ namespace Musiccast.Service
 
         public async Task<MusicCastDevice> RefreshDeviceAsync(string id, string zone)
         {
-            var status = await this.GetDeviceStatusAsync(new Uri(id), zone);
-
-            var temp = new MusicCastDevice()
+            try
             {
-                Id = id,
-                Power = status.power,
-                Input = (status.input)
-            };
+                var status = await this.GetDeviceStatusAsync(new Uri(id), zone);
 
-            if (status.input == Inputs.tuner)
-            {
-                var tuner = await this.GetTunerPlayInfoAsync(new Uri(id));
-                temp.NowPlayingInformation = tuner.NowPlayingSummary;
+                var temp = new MusicCastDevice()
+                {
+                    Id = id,
+                    Power = status.power,
+                    Input = (status.input)
+                };
+
+                if (status.input == Inputs.tuner)
+                {
+                    var tuner = await this.GetTunerPlayInfoAsync(new Uri(id));
+                    temp.NowPlayingInformation = tuner.NowPlayingSummary;
+                }
+
+                if (status.input == Inputs.net_radio)
+                {
+                    var tuner = await this.GetNetRadioInfoAsync(new Uri(id));
+                    temp.NowPlayingInformation = tuner.NowPlayingSummary;
+                }
+
+                return temp;
             }
-
-            if(status.input == Inputs.net_radio)
+            catch (Exception)
             {
-                var tuner = await this.GetNetRadioInfoAsync(new Uri(id));
-                temp.NowPlayingInformation = tuner.NowPlayingSummary;
+                return null;
             }
-
-            return temp;
         }
 
         private MusicCastDevice ConvertApiDeviceToDevice(string baseUri, string zone, DLNADescription device, GetStatusResponse status, GetDeviceInfoResponse info)

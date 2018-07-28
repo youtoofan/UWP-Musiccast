@@ -17,7 +17,7 @@
 
         <TextBlock
             Grid.Row="0"
-            x:Uid="DeviceDetailPage_Title"
+            Text="{x:Bind ViewModel.Device.FriendlyName}"
             Style="{StaticResource PageTitleStyle}" />
         <Grid
             Grid.Row="1" 

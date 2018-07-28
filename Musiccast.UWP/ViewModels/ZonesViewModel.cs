@@ -26,8 +26,6 @@ namespace App4.ViewModels
         public ObservableCollection<Device> Devices { get; set; }
         public Timer refreshTimer;
 
-        public Device SelectedDevice { get; set; }
-
         public ICommand AddDeviceCommand
         {
             get
@@ -40,9 +38,9 @@ namespace App4.ViewModels
         {
             get
             {
-                return new RelayCommand(() =>
+                return new RelayCommand<Device>((device) =>
                 {
-                    navigationService.Navigate(typeof(DeviceDetailPageViewModel).FullName, this.SelectedDevice);
+                    navigationService.Navigate(typeof(DeviceDetailPageViewModel).FullName, device);
                 });
             }
         }
@@ -92,17 +90,22 @@ namespace App4.ViewModels
                         service = new MusicCastService();
 
                     var updatedDevice = await service.RefreshDeviceAsync(item.Id, item.Zone);
-                    item.Power = updatedDevice.Power;
-                    item.Input = updatedDevice.Input.ToString();
-                    item.SubTitle = updatedDevice.NowPlayingInformation;
+                    if(updatedDevice != null)
+                    {
+                        item.Power = updatedDevice.Power;
+                        item.Input = updatedDevice.Input.ToString();
+                        item.SubTitle = updatedDevice.NowPlayingInformation;
 
-                    if (string.IsNullOrEmpty(item.FriendlyName))
-                        item.FriendlyName = "UNKNOWN";
+                        if (string.IsNullOrEmpty(item.FriendlyName))
+                            item.FriendlyName = "UNKNOWN";
 
-                    item.PowerToggled += async (s, e) => { await Item_PowerToggledAsync(s, e); };
-                    Devices.Add(item);
+                        item.PowerToggled += async (s, e) => { await Item_PowerToggledAsync(s, e); };
+                        Devices.Add(item);
+                    }
                 }
             }
+
+            await SaveDevicesInStorageAsync(Devices.ToList());
         }
 
         private async Task Item_PowerToggledAsync(object sender, Device e)

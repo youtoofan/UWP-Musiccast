@@ -123,6 +123,7 @@
     <Compile Include="Helpers\BooleanToColorConverter.cs" />
     <Compile Include="Helpers\BooleanToOpacityConverter.cs" />
     <Compile Include="Helpers\EnumToBooleanConverter.cs" />
+    <Compile Include="Helpers\ItemClickCommand.cs" />
     <Compile Include="Helpers\Json.cs" />
     <Compile Include="Helpers\ObjectToDeviceConverter.cs" />
     <Compile Include="Helpers\ParameterRelayCommand.cs" />

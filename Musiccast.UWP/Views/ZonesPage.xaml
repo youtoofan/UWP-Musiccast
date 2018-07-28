@@ -82,9 +82,9 @@
                                    DesiredWidth="500"
                                    SelectionMode="Single"
                                    IsItemClickEnabled="True"
-                                   SelectedItem="{x:Bind ViewModel.SelectedDevice, Mode=TwoWay, Converter={StaticResource objectToDeviceConverter}}"
-                                   ItemsSource="{x:Bind ViewModel.Devices}" Grid.Row="1"
+                                   ItemsSource="{x:Bind ViewModel.Devices, Mode=OneWay}" Grid.Row="1"
                                    ItemClickCommand="{x:Bind ViewModel.ViewDeviceDetailCommand}"
-                  ItemTemplate="{StaticResource ContactListViewTemplate}"/>
+                  ItemTemplate="{StaticResource ContactListViewTemplate}">
+        </controls:AdaptiveGridView>
     </Grid>
 </Page>
