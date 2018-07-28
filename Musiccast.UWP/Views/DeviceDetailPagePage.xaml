@@ -4,26 +4,72 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    xmlns:helpers="using:Musiccast.Helpers"
     Style="{StaticResource PageStyle}"
     DataContext="{Binding DeviceDetailPageViewModel, Source={StaticResource Locator}}"
     mc:Ignorable="d">
+    <Page.Resources>
+        <helpers:UriToBitmapConverter x:Name="uriToBitmapConverter"/>
+        <helpers:BooleanToColorConverter x:Name="booleanToColorConverter"/>
+        <helpers:BooleanToOpacityConverter x:Name="booleanToOpacityConverter"/>
+    </Page.Resources>
     <Grid
         x:Name="ContentArea"
-        Margin="{StaticResource MediumLeftRightMargin}">
+       >
         <Grid.RowDefinitions>
-            <RowDefinition Height="48"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-
-        <TextBlock
-            Grid.Row="0"
-            Text="{x:Bind ViewModel.Device.FriendlyName}"
-            Style="{StaticResource PageTitleStyle}" />
-        <Grid
-            Grid.Row="1" 
-            Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
-            <!--The SystemControlPageBackgroundChromeLowBrush background represents where you should place your content. 
-                Place your content here.-->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Row="0" VerticalAlignment="Center" Margin="{StaticResource MediumLeftTopRightBottomMargin}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" HorizontalAlignment="Left" Background="Transparent" Command="{x:Bind ViewModel.NavigateHomeCommand}">
+                <SymbolIcon Symbol="Home"/>
+            </Button>
+            <TextBlock Grid.Column="1" HorizontalAlignment="Center" Text="{x:Bind ViewModel.Device.FriendlyName, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}"/>
+            <Button Grid.Column="2" HorizontalAlignment="Right" Command="{x:Bind ViewModel.TogglePowerCommand}" Background="Transparent">
+                <SymbolIcon Symbol="Target"/>
+            </Button>
+        </Grid>
+        <Grid Grid.Row="1" Opacity="{x:Bind ViewModel.Device.IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" Padding="{StaticResource FlyoutContentThemePadding}" Background="OrangeRed">
+            
+        </Grid>
+        <Grid Grid.Row="2">
+            <controls:Expander x:Name="Expander2" VerticalAlignment="Top" Margin="0"
+                           Header="{x:Bind ViewModel.Device.Input, Mode=OneWay}"
+                           HorizontalContentAlignment="Stretch"
+                           IsExpanded="False"
+                           ExpandDirection="Up">
+                <Grid Height="400"  Opacity="{x:Bind ViewModel.Device.IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" Background="SlateGray">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Text="{x:Bind ViewModel.Device.SubTitle, Mode=OneWay}"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Foreground="{ThemeResource SystemControlForegroundChromeBlackHighBrush}" />
+                    <controls:ImageEx x:Name="ImageExControl1" Grid.Row="1"
+                                  IsCacheEnabled="True"
+                                  Source="{x:Bind ViewModel.Device.ImageUri}"
+                                  Stretch="UniformToFill"
+                                  PlaceholderSource="/Assets/349516_400X400.jpg"
+                                  Width="{x:Bind ViewModel.Device.ImageSize}"
+                                  Height="{x:Bind ViewModel.Device.ImageSize}"
+                                      />
+                    <Slider Minimum="0" Maximum="100" Grid.Row="2" Header="Volume" HorizontalContentAlignment="Stretch" Margin="{StaticResource MediumLeftTopRightBottomMargin}"/>
+                </Grid>
+            </controls:Expander>
         </Grid>
     </Grid>
 </Page>
