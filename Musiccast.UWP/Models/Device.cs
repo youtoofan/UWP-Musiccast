@@ -14,8 +14,11 @@ namespace Musiccast.Models
         private string _power;
         private string _input;
         private string _subTitle;
+        private int _volume;
+        private int _maxVolume;
 
         public event EventHandler<Device> PowerToggled;
+        public event EventHandler<Device> VolumeChanged;
 
         public string Id { get; set; }
         public string FriendlyName { get; set; }
@@ -84,6 +87,25 @@ namespace Musiccast.Models
             }
         }
 
+        public int Volume
+        {
+            get => _volume;
 
+            set
+            {
+                Set(ref _volume, value);
+                if (VolumeChanged != null)
+                    VolumeChanged(this, this);
+            }
+        }
+
+        public int MaxVolume
+        {
+            get => _maxVolume;
+            set
+            {
+                Set(ref _maxVolume, value);
+            }
+        }
     }
 }

@@ -18,5 +18,7 @@ namespace Musiccast.Model
         public string ModelName { get; set; }
         public string Zone { get; set; }
         public string NowPlayingInformation { get; set; }
+        public int Volume { get; set; }
+        public int MaxVolume { get; set; }
     }
 }

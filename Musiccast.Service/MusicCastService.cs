@@ -22,6 +22,7 @@ namespace Musiccast.Service
         private const string TogglePower = "/YamahaExtendedControl/v1/{0}/setPower?power=toggle";
         private const string TunerPlayInfo = "/YamahaExtendedControl/v1/tuner/getPlayInfo";
         private const string NetRadioPlayInfo = "/YamahaExtendedControl/v1/netusb/getPlayInfo";
+        private const string SetVolume = "/YamahaExtendedControl/v1/{0}/setVolume?volume={1}";
 
         public async Task LoadRoomsAsync()
         {
@@ -56,6 +57,8 @@ namespace Musiccast.Service
             }
         }
 
+        
+
         public async Task<MusicCastDevice> RefreshDeviceAsync(string id, string zone)
         {
             try
@@ -66,7 +69,9 @@ namespace Musiccast.Service
                 {
                     Id = id,
                     Power = status.power,
-                    Input = (status.input)
+                    Input = (status.input),
+                    Volume = status.volume,
+                    MaxVolume = status.max_volume
                 };
 
                 if (status.input == Inputs.tuner)
@@ -168,6 +173,15 @@ namespace Musiccast.Service
                 client.DefaultRequestHeaders.Add("X-AppPort", "41100");
                 var result = await client.GetStringAsync(new Uri(baseUri, NetRadioPlayInfo));
                 return JsonConvert.DeserializeObject<GetNetUsbPlayInfoResponse>(result);
+            }
+        }
+        public async Task AdjustDeviceVolume(string id, string zoneName, int volume)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
+                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                var result = await client.GetStringAsync(new Uri(new Uri(id), string.Format(SetVolume, zoneName, volume)));
             }
         }
     }

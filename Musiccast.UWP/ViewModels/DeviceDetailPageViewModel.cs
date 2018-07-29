@@ -15,17 +15,28 @@ namespace App4.ViewModels
         private readonly NavigationServiceEx navigationService;
         private MusicCastService service;
         private Device _device;
+        private double _volume;
 
         public DeviceDetailPageViewModel(NavigationServiceEx navigationService)
         {
             this.navigationService = navigationService;
-            navigationService.Navigated += NavigationService_Navigated;
+            navigationService.Navigated += NavigationService_NavigatedAsync;
         }
 
-        private void NavigationService_Navigated(object sender, Windows.UI.Xaml.Navigation.NavigationEventArgs e)
+        private async void NavigationService_NavigatedAsync(object sender, Windows.UI.Xaml.Navigation.NavigationEventArgs e)
         {
             this.Device = e.Parameter as Device;
+
+            if (Device == null)
+                return;
+
+            this.Device.PowerToggled += Device_PowerToggledAsync;
+            this.Device.VolumeChanged += Device_VolumeChanged;
+
+            await RefreshDeviceAsync();
         }
+
+        
 
         public Device Device
         {
@@ -48,20 +59,29 @@ namespace App4.ViewModels
             }
         }
 
-        public ICommand TogglePowerCommand
+        private async void Device_VolumeChanged(object sender, Device e)
         {
-            get
-            {
-                return new RelayCommand(async () =>
-                {
-                    await TogglePowerAsync();
-                    await RefreshDeviceAsync();
-                });
-            }
+            if (service == null)
+                service = new MusicCastService();
+
+            await service.AdjustDeviceVolume(Device.Id, Device.Zone, e.Volume);
+            //await RefreshDeviceAsync();
+        }
+
+        private async void Device_PowerToggledAsync(object sender, Device e)
+        {
+            if (service == null)
+                service = new MusicCastService();
+
+            await service.TogglePowerAsync(Device.Id, Device.Zone);
+            await RefreshDeviceAsync();
         }
 
         private async Task RefreshDeviceAsync()
         {
+            if (service == null)
+                service = new MusicCastService();
+
             var updatedDevice = await service.RefreshDeviceAsync(Device.Id, Device.Zone);
 
             await DispatcherHelper.RunAsync(() =>
@@ -69,15 +89,9 @@ namespace App4.ViewModels
                 Device.Power = updatedDevice.Power;
                 Device.Input = updatedDevice.Input.ToString();
                 Device.SubTitle = updatedDevice.NowPlayingInformation;
+                Device.Volume = updatedDevice.Volume;
+                Device.MaxVolume = updatedDevice.MaxVolume;
             });
-        }
-
-        private async Task TogglePowerAsync()
-        {
-            if (service == null)
-                service = new MusicCastService();
-
-            await service.TogglePowerAsync(Device.Id, Device.Zone);
         }
     }
 }

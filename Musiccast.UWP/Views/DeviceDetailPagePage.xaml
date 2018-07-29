@@ -35,7 +35,7 @@
                 <SymbolIcon Symbol="Home"/>
             </Button>
             <TextBlock Grid.Column="1" HorizontalAlignment="Center" Text="{x:Bind ViewModel.Device.FriendlyName, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}"/>
-            <Button Grid.Column="2" HorizontalAlignment="Right" Command="{x:Bind ViewModel.TogglePowerCommand}" Background="Transparent">
+            <Button Grid.Column="2" HorizontalAlignment="Right" Command="{x:Bind ViewModel.Device.TogglePowerCommand}" Background="Transparent">
                 <SymbolIcon Symbol="Target"/>
             </Button>
         </Grid>
@@ -67,7 +67,7 @@
                                   Width="{x:Bind ViewModel.Device.ImageSize}"
                                   Height="{x:Bind ViewModel.Device.ImageSize}"
                                       />
-                    <Slider Minimum="0" Maximum="100" Grid.Row="2" Header="Volume" HorizontalContentAlignment="Stretch" Margin="{StaticResource MediumLeftTopRightBottomMargin}"/>
+                    <Slider Value="{x:Bind ViewModel.Device.Volume, Mode=TwoWay}" Minimum="0" Maximum="{x:Bind ViewModel.Device.MaxVolume, Mode=OneWay}" Grid.Row="2" Header="Volume" HorizontalContentAlignment="Stretch" Margin="{StaticResource MediumLeftTopRightBottomMargin}"/>
                 </Grid>
             </controls:Expander>
         </Grid>

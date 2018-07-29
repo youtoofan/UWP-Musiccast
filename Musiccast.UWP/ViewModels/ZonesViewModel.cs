@@ -65,6 +65,9 @@ namespace App4.ViewModels
             if (Devices == null || Devices.Count <= 0)
                 return;
 
+            if (service == null)
+                service = new MusicCastService();
+
             foreach (var e in Devices.AsParallel())
             {
                 var updatedDevice = await service.RefreshDeviceAsync(e.Id, e.Zone);
@@ -81,8 +84,9 @@ namespace App4.ViewModels
         public async Task InitAsync()
         {
             Devices.Clear();
+
             var temp = await LoadDevicesFromStorageAsync();
-            foreach (var item in temp.AsParallel())
+            foreach (var item in temp)
             {
                 if (temp != null)
                 {
@@ -136,8 +140,8 @@ namespace App4.ViewModels
                     Id = device.Id,
                     Zone = device.Zone,
                     FriendlyName = device.FriendlyName,
-                        //ImageUri = new Uri(new Uri(new Uri(device.Location).GetLeftPart(UriPartial.Authority)), device.ImagePath),
-                        ImageSize = device.ImageSize,
+                    //ImageUri = new Uri(new Uri(new Uri(device.Location).GetLeftPart(UriPartial.Authority)), device.ImagePath),
+                    ImageSize = device.ImageSize,
                     Power = device.Power,
                     Input = device.Input.ToString(),
                     SubTitle = device.NowPlayingInformation
