@@ -129,6 +129,7 @@
     <Compile Include="Helpers\ParameterRelayCommand.cs" />
     <Compile Include="Helpers\ResourceHelper.cs" />
     <Compile Include="Helpers\SettingsStorageExtensions.cs" />
+    <Compile Include="Helpers\UDPListener.cs" />
     <Compile Include="Helpers\UriHelper.cs" />
     <Compile Include="Helpers\UriToBitmapConverter.cs" />
     <Compile Include="Models\Device.cs" />

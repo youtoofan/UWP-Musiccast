@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -153,12 +155,22 @@ namespace App4.ViewModels
                 if (temp != null)
                 {
                     Devices.Add(item);
+                   // await new UDPListener().ListenAsync(AddressToInt(item.BaseUri), 41100);
                 }
             }
 
             await RefreshDevicesAsync(null);
 
             await SaveDevicesInStorageAsync(Devices.ToList());
+        }
+
+        private long AddressToInt(string addr)
+        {
+            // careful of sign extension: convert to uint first;
+            // unsigned NetworkToHostOrder ought to be provided.
+            var address = IPAddress.Parse(addr.Substring(7, 13));
+            var temp = BitConverter.ToUInt32(address.GetAddressBytes().Reverse().ToArray(), 0);
+            return (uint)IPAddress.NetworkToHostOrder(temp);
         }
 
         /// <summary>
