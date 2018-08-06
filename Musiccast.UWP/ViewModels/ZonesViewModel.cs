@@ -11,21 +11,52 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Threading;
 using GalaSoft.MvvmLight.Views;
+using Musiccast.Helpers;
 using Musiccast.Model;
 using Musiccast.Models;
 using Musiccast.Service;
 using Windows.Storage;
+using Windows.UI;
+using Windows.UI.Xaml.Media;
 
 namespace App4.ViewModels
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="GalaSoft.MvvmLight.ViewModelBase" />
     public class ZonesViewModel : ViewModelBase
     {
+        /// <summary>
+        /// The devices key
+        /// </summary>
         private const string DevicesKey = "DEVICES";
+        /// <summary>
+        /// The navigation service
+        /// </summary>
         private readonly NavigationServiceEx navigationService;
+        /// <summary>
+        /// The service
+        /// </summary>
         private MusicCastService service;
+        /// <summary>
+        /// Gets or sets the devices.
+        /// </summary>
+        /// <value>
+        /// The devices.
+        /// </value>
         public ObservableCollection<Device> Devices { get; set; }
+        /// <summary>
+        /// The refresh timer
+        /// </summary>
         public Timer refreshTimer;
 
+        /// <summary>
+        /// Gets the add device command.
+        /// </summary>
+        /// <value>
+        /// The add device command.
+        /// </value>
         public ICommand AddDeviceCommand
         {
             get
@@ -34,6 +65,12 @@ namespace App4.ViewModels
             }
         }
 
+        /// <summary>
+        /// Gets the view device detail command.
+        /// </summary>
+        /// <value>
+        /// The view device detail command.
+        /// </value>
         public ICommand ViewDeviceDetailCommand
         {
             get
@@ -45,6 +82,10 @@ namespace App4.ViewModels
             }
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ZonesViewModel"/> class.
+        /// </summary>
+        /// <param name="navigationService">The navigation service.</param>
         public ZonesViewModel(NavigationServiceEx navigationService)
         {
             this.navigationService = navigationService;
@@ -56,11 +97,16 @@ namespace App4.ViewModels
             }
             else
             {
-                refreshTimer = new Timer(RefreshDevicesAsync, null, 10000, 10000);
+                refreshTimer = new Timer(async (e) => { await RefreshDevicesAsync(e); }, null, 10000, 10000);
             }
         }
 
-        private async void RefreshDevicesAsync(object state)
+        /// <summary>
+        /// Refreshes the devices asynchronous.
+        /// </summary>
+        /// <param name="state">The state.</param>
+        /// <returns></returns>
+        private async Task RefreshDevicesAsync(object state)
         {
             if (Devices == null || Devices.Count <= 0)
                 return;
@@ -70,17 +116,33 @@ namespace App4.ViewModels
 
             foreach (var e in Devices.AsParallel())
             {
-                var updatedDevice = await service.RefreshDeviceAsync(e.Id, e.Zone);
+                if (e == null || e.BaseUri == null)
+                    continue;
+
+                var updatedDevice = await service.RefreshDeviceAsync(e.Id, new Uri(e.BaseUri), e.Zone);
 
                 await DispatcherHelper.RunAsync(() =>
                 {
                     e.Power = updatedDevice.Power;
                     e.Input = updatedDevice.Input.ToString();
                     e.SubTitle = updatedDevice.NowPlayingInformation;
+                    e.BackGround = new SolidColorBrush(Colors.OrangeRed);
+                    e.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
+                    e.ImageSize = e.ImageSize;
+
+                    if (string.IsNullOrEmpty(e.FriendlyName))
+                        e.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
+
+                    e.PowerToggled -= async (s, args) => { await Item_PowerToggledAsync(s, args); };
+                    e.PowerToggled += async (s, args) => { await Item_PowerToggledAsync(s, args); };
                 });
             }
         }
 
+        /// <summary>
+        /// Initializes the asynchronous.
+        /// </summary>
+        /// <returns></returns>
         public async Task InitAsync()
         {
             Devices.Clear();
@@ -90,37 +152,34 @@ namespace App4.ViewModels
             {
                 if (temp != null)
                 {
-                    if (service == null)
-                        service = new MusicCastService();
-
-                    var updatedDevice = await service.RefreshDeviceAsync(item.Id, item.Zone);
-                    if(updatedDevice != null)
-                    {
-                        item.Power = updatedDevice.Power;
-                        item.Input = updatedDevice.Input.ToString();
-                        item.SubTitle = updatedDevice.NowPlayingInformation;
-
-                        if (string.IsNullOrEmpty(item.FriendlyName))
-                            item.FriendlyName = "UNKNOWN";
-
-                        item.PowerToggled += async (s, e) => { await Item_PowerToggledAsync(s, e); };
-                        Devices.Add(item);
-                    }
+                    Devices.Add(item);
                 }
             }
+
+            await RefreshDevicesAsync(null);
 
             await SaveDevicesInStorageAsync(Devices.ToList());
         }
 
+        /// <summary>
+        /// Items the power toggled asynchronous.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The e.</param>
+        /// <returns></returns>
         private async Task Item_PowerToggledAsync(object sender, Device e)
         {
             if (service == null)
                 service = new MusicCastService();
 
-            await service.TogglePowerAsync(e.Id, e.Zone);
-            RefreshDevicesAsync(null);
+            await service.TogglePowerAsync(new Uri(e.BaseUri), e.Zone);
+            await RefreshDevicesAsync(null);
         }
 
+        /// <summary>
+        /// Finds the new devices.
+        /// </summary>
+        /// <returns></returns>
         public async Task FindNewDevices()
         {
             service = new MusicCastService();
@@ -128,6 +187,11 @@ namespace App4.ViewModels
             await service.LoadRoomsAsync();
         }
 
+        /// <summary>
+        /// Services the device found asynchronous.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="device">The device.</param>
         private async void Service_DeviceFoundAsync(object sender, MusicCastDevice device)
         {
             await DispatcherHelper.RunAsync(() =>
@@ -138,24 +202,35 @@ namespace App4.ViewModels
                 Devices.Add(new Device()
                 {
                     Id = device.Id,
+                    BaseUri = device.BaseUri,
                     Zone = device.Zone,
                     FriendlyName = device.FriendlyName,
-                    //ImageUri = new Uri(new Uri(new Uri(device.Location).GetLeftPart(UriPartial.Authority)), device.ImagePath),
+                    ImageUri = UriHelper.ResolvePath(device.Location, device.ImagePath),
                     ImageSize = device.ImageSize,
                     Power = device.Power,
                     Input = device.Input.ToString(),
-                    SubTitle = device.NowPlayingInformation
+                    SubTitle = device.NowPlayingInformation,
+                    BackGround = new SolidColorBrush(Colors.LightGray)
                 });
             });
             await SaveDevicesInStorageAsync(Devices.ToList());
         }
 
+        /// <summary>
+        /// Loads the devices from storage asynchronous.
+        /// </summary>
+        /// <returns></returns>
         private static async Task<List<Device>> LoadDevicesFromStorageAsync()
         {
             var devices = await ApplicationData.Current.LocalSettings.ReadAsync<List<Device>>(DevicesKey);
             return devices ?? new List<Device>();
         }
 
+        /// <summary>
+        /// Saves the devices in storage asynchronous.
+        /// </summary>
+        /// <param name="devices">The devices.</param>
+        /// <returns></returns>
         private static async Task SaveDevicesInStorageAsync(List<Device> devices)
         {
             await ApplicationData.Current.LocalSettings.SaveAsync(DevicesKey, devices);

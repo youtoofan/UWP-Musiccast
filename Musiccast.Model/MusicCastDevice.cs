@@ -20,5 +20,6 @@ namespace Musiccast.Model
         public string NowPlayingInformation { get; set; }
         public int Volume { get; set; }
         public int MaxVolume { get; set; }
+        public string BaseUri { get; set; }
     }
 }

@@ -200,4 +200,19 @@
   <data name="DeviceDetailPage_Title.Text" xml:space="preserve">
     <value>Details</value>
   </data>
+  <data name="Device_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Device_On" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="DeviceName_Unknown" xml:space="preserve">
+    <value>Unknown device</value>
+  </data>
+  <data name="Zones_Header.Text" xml:space="preserve">
+    <value>Zones</value>
+  </data>
+  <data name="DeviceDetail_Volume.Header" xml:space="preserve">
+    <value>Volume</value>
+  </data>
 </root>

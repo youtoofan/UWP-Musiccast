@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,17 +22,17 @@ namespace Musiccast.Model
             {
                 if(band.Equals("FM", StringComparison.OrdinalIgnoreCase))
                 {
-                    return "FM " + fm.freq;
+                    return fm.freq.ToString(CultureInfo.InvariantCulture);
                 }
 
                 if (band.Equals("RDS", StringComparison.OrdinalIgnoreCase))
                 {
-                    return "RDS " + rds.program_service;
+                    return rds.program_service;
                 }
 
                 if (band.Equals("DAB", StringComparison.OrdinalIgnoreCase))
                 {
-                    return dab.service_label + " " + dab.dls + " " + dab.ensemble_label;
+                    return dab.dls;
                 }
 
                 return string.Empty;

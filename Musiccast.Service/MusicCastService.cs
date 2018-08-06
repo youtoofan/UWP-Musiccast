@@ -12,25 +12,53 @@ using System.Runtime.Serialization;
 
 namespace Musiccast.Service
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class MusicCastService
     {
+        /// <summary>
+        /// Occurs when [device found].
+        /// </summary>
         public event EventHandler<MusicCastDevice> DeviceFound;
 
+        /// <summary>
+        /// The information
+        /// </summary>
         private const string Info = "/YamahaExtendedControl/v1/system/getDeviceInfo";
+        /// <summary>
+        /// The status
+        /// </summary>
         private const string Status = "/YamahaExtendedControl/v1/{0}/getStatus";
+        /// <summary>
+        /// The location information
+        /// </summary>
         private const string LocationInfo = "/YamahaExtendedControl/v1/system/getLocationInfo";
+        /// <summary>
+        /// The toggle power
+        /// </summary>
         private const string TogglePower = "/YamahaExtendedControl/v1/{0}/setPower?power=toggle";
+        /// <summary>
+        /// The tuner play information
+        /// </summary>
         private const string TunerPlayInfo = "/YamahaExtendedControl/v1/tuner/getPlayInfo";
+        /// <summary>
+        /// The net radio play information
+        /// </summary>
         private const string NetRadioPlayInfo = "/YamahaExtendedControl/v1/netusb/getPlayInfo";
+        /// <summary>
+        /// The set volume
+        /// </summary>
         private const string SetVolume = "/YamahaExtendedControl/v1/{0}/setVolume?volume={1}";
 
-        public async Task LoadRoomsAsync()
-        {
-            var service = new DLNADiscovery();
-            service.DeviceFound += async (s, e) => { await DeviceFoundAsync(s, e); };
-            await service.ScanNetworkAsync(CancellationToken.None);
-        }
+        #region private methods
 
+        /// <summary>
+        /// Devices the found asynchronous.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="device">The device.</param>
+        /// <returns></returns>
         private async Task DeviceFoundAsync(object sender, DLNADescription device)
         {
             if (device == null || device.X_device == null)
@@ -57,13 +85,140 @@ namespace Musiccast.Service
             }
         }
 
-        
+        /// <summary>
+        /// Converts the API device to device.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <param name="zone">The zone.</param>
+        /// <param name="device">The device.</param>
+        /// <param name="status">The status.</param>
+        /// <param name="info">The information.</param>
+        /// <returns></returns>
+        private MusicCastDevice ConvertApiDeviceToDevice(string baseUri, string zone, DLNADescription device, GetStatusResponse status, GetDeviceInfoResponse info)
+        {
+            return new MusicCastDevice()
+            {
+                Id = info.device_id,
+                BaseUri = baseUri,
+                Zone = zone,
+                ModelName = info.model_name,
+                FriendlyName = device.device.friendlyName,
+                Location = (device.Location),
+                ImagePath = (device.device.iconList.Last().url),
+                ImageSize = device.device.iconList.Last().width,
+                Power = status.power,
+                Input = (status.input)
+            };
+        }
 
-        public async Task<MusicCastDevice> RefreshDeviceAsync(string id, string zone)
+        /// <summary>
+        /// Gets the device status asynchronous.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <param name="zoneName">Name of the zone.</param>
+        /// <returns></returns>
+        private async Task<GetStatusResponse> GetDeviceStatusAsync(Uri baseUri, string zoneName)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
+                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Status, zoneName)));
+                return JsonConvert.DeserializeObject<GetStatusResponse>(result);
+            }
+        }
+
+        /// <summary>
+        /// Gets the device information.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <returns></returns>
+        private async Task<GetDeviceInfoResponse> GetDeviceInfo(Uri baseUri)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
+                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                var result = await client.GetStringAsync(new Uri(baseUri, Info));
+                return JsonConvert.DeserializeObject<GetDeviceInfoResponse>(result);
+            }
+        }
+
+        /// <summary>
+        /// Gets the device location information asynchronous.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <returns></returns>
+        private async Task<GetLocationInfoResponse> GetDeviceLocationInfoAsync(Uri baseUri)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
+                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                var result = await client.GetStringAsync(new Uri(baseUri, LocationInfo));
+                return JsonConvert.DeserializeObject<GetLocationInfoResponse>(result);
+            }
+        }
+
+        /// <summary>
+        /// Gets the tuner play information asynchronous.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <returns></returns>
+        private async Task<GetTunerPlayInfoResponse> GetTunerPlayInfoAsync(Uri baseUri)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
+                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                var result = await client.GetStringAsync(new Uri(baseUri, TunerPlayInfo));
+                return JsonConvert.DeserializeObject<GetTunerPlayInfoResponse>(result);
+            }
+        }
+
+        /// <summary>
+        /// Gets the net radio information asynchronous.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <returns></returns>
+        private async Task<GetNetUsbPlayInfoResponse> GetNetRadioInfoAsync(Uri baseUri)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
+                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                var result = await client.GetStringAsync(new Uri(baseUri, NetRadioPlayInfo));
+                return JsonConvert.DeserializeObject<GetNetUsbPlayInfoResponse>(result);
+            }
+        }
+
+        #endregion
+
+        #region public 
+
+        /// <summary>
+        /// Loads the rooms asynchronous.
+        /// </summary>
+        /// <returns></returns>
+        public async Task LoadRoomsAsync()
+        {
+            var service = new DLNADiscovery();
+            service.DeviceFound += async (s, e) => { await DeviceFoundAsync(s, e); };
+            await service.ScanNetworkAsync(CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Refreshes the device asynchronous.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <param name="baseUri">The base URI.</param>
+        /// <param name="zone">The zone.</param>
+        /// <returns></returns>
+        public async Task<MusicCastDevice> RefreshDeviceAsync(string id, Uri baseUri, string zone)
         {
             try
             {
-                var status = await this.GetDeviceStatusAsync(new Uri(id), zone);
+                var status = await this.GetDeviceStatusAsync(baseUri, zone);
 
                 var temp = new MusicCastDevice()
                 {
@@ -76,13 +231,13 @@ namespace Musiccast.Service
 
                 if (status.input == Inputs.tuner)
                 {
-                    var tuner = await this.GetTunerPlayInfoAsync(new Uri(id));
+                    var tuner = await this.GetTunerPlayInfoAsync(baseUri);
                     temp.NowPlayingInformation = tuner.NowPlayingSummary;
                 }
 
                 if (status.input == Inputs.net_radio)
                 {
-                    var tuner = await this.GetNetRadioInfoAsync(new Uri(id));
+                    var tuner = await this.GetNetRadioInfoAsync(baseUri);
                     temp.NowPlayingInformation = tuner.NowPlayingSummary;
                 }
 
@@ -94,95 +249,40 @@ namespace Musiccast.Service
             }
         }
 
-        private MusicCastDevice ConvertApiDeviceToDevice(string baseUri, string zone, DLNADescription device, GetStatusResponse status, GetDeviceInfoResponse info)
-        {
-            return new MusicCastDevice()
-            {
-                Id = baseUri,
-                Zone = zone,
-                ModelName = info.model_name,
-                FriendlyName = device.device.friendlyName,
-                Location = (device.Location),
-                ImagePath = (device.device.iconList.Last().url),
-                ImageSize = device.device.iconList.Last().width,
-                Power = status.power,
-                Input = (status.input)
-            };
-        }
-
-        public async Task TogglePowerAsync(string id, string zoneName)
+        /// <summary>
+        /// Toggles the power asynchronous.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <param name="zoneName">Name of the zone.</param>
+        /// <returns></returns>
+        public async Task TogglePowerAsync(Uri baseUri, string zoneName)
         {
             using (HttpClient client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
                 client.DefaultRequestHeaders.Add("X-AppPort", "41100");
-                var result = await client.GetStringAsync(new Uri(new Uri(id), string.Format(TogglePower, zoneName)));
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(TogglePower, zoneName)));
                 await Task.Delay(1000);
             }
         }
 
-        private async Task<GetStatusResponse> GetDeviceStatusAsync(Uri baseUri, string zoneName)
+        /// <summary>
+        /// Adjusts the device volume.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <param name="zoneName">Name of the zone.</param>
+        /// <param name="volume">The volume.</param>
+        /// <returns></returns>
+        public async Task AdjustDeviceVolume(Uri baseUri, string zoneName, int volume)
         {
             using (HttpClient client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
                 client.DefaultRequestHeaders.Add("X-AppPort", "41100");
-                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Status, zoneName)));
-                return JsonConvert.DeserializeObject<GetStatusResponse>(result);
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(SetVolume, zoneName, volume)));
             }
         }
 
-        private async Task<GetDeviceInfoResponse> GetDeviceInfo(Uri baseUri)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
-                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
-                var result = await client.GetStringAsync(new Uri(baseUri, Info));
-                return JsonConvert.DeserializeObject<GetDeviceInfoResponse>(result);
-            }
-        }
-
-        private async Task<GetLocationInfoResponse> GetDeviceLocationInfoAsync(Uri baseUri)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
-                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
-                var result = await client.GetStringAsync(new Uri(baseUri, LocationInfo));
-                return JsonConvert.DeserializeObject<GetLocationInfoResponse>(result);
-            }
-        }
-
-        private async Task<GetTunerPlayInfoResponse> GetTunerPlayInfoAsync(Uri baseUri)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
-                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
-                var result = await client.GetStringAsync(new Uri(baseUri, TunerPlayInfo));
-                return JsonConvert.DeserializeObject<GetTunerPlayInfoResponse>(result);
-            }
-        }
-
-        private async Task<GetNetUsbPlayInfoResponse> GetNetRadioInfoAsync(Uri baseUri)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
-                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
-                var result = await client.GetStringAsync(new Uri(baseUri, NetRadioPlayInfo));
-                return JsonConvert.DeserializeObject<GetNetUsbPlayInfoResponse>(result);
-            }
-        }
-        public async Task AdjustDeviceVolume(string id, string zoneName, int volume)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
-                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
-                var result = await client.GetStringAsync(new Uri(new Uri(id), string.Format(SetVolume, zoneName, volume)));
-            }
-        }
+        #endregion
     }
 }

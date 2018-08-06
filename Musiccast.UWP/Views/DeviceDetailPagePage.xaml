@@ -15,8 +15,7 @@
         <helpers:BooleanToOpacityConverter x:Name="booleanToOpacityConverter"/>
     </Page.Resources>
     <Grid
-        x:Name="ContentArea"
-       >
+        x:Name="ContentArea">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -39,16 +38,17 @@
                 <SymbolIcon Symbol="Target"/>
             </Button>
         </Grid>
-        <Grid Grid.Row="1" Opacity="{x:Bind ViewModel.Device.IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" Padding="{StaticResource FlyoutContentThemePadding}" Background="OrangeRed">
+        <Grid Grid.Row="1" Opacity="{x:Bind ViewModel.Device.IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" Padding="{StaticResource FlyoutContentThemePadding}" Background="{x:Bind ViewModel.Device.BackGround, Mode=OneWay}">
             
         </Grid>
         <Grid Grid.Row="2">
             <controls:Expander x:Name="Expander2" VerticalAlignment="Top" Margin="0"
                            Header="{x:Bind ViewModel.Device.Input, Mode=OneWay}"
                            HorizontalContentAlignment="Stretch"
+                           VerticalContentAlignment="Bottom"
                            IsExpanded="False"
                            ExpandDirection="Up">
-                <Grid Height="400"  Opacity="{x:Bind ViewModel.Device.IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" Background="SlateGray">
+                <Grid Height="400"  Opacity="{x:Bind ViewModel.Device.IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" >
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -57,17 +57,23 @@
                     <TextBlock HorizontalAlignment="Center"
                        TextWrapping="Wrap"
                        Text="{x:Bind ViewModel.Device.SubTitle, Mode=OneWay}"
-                       Style="{StaticResource CaptionTextBlockStyle}"
-                       Foreground="{ThemeResource SystemControlForegroundChromeBlackHighBrush}" />
+                       Style="{StaticResource SubtitleTextBlockStyle}"
+                       />
                     <controls:ImageEx x:Name="ImageExControl1" Grid.Row="1"
                                   IsCacheEnabled="True"
                                   Source="{x:Bind ViewModel.Device.ImageUri}"
                                   Stretch="UniformToFill"
                                   PlaceholderSource="/Assets/349516_400X400.jpg"
-                                  Width="{x:Bind ViewModel.Device.ImageSize}"
-                                  Height="{x:Bind ViewModel.Device.ImageSize}"
+                                  
                                       />
-                    <Slider Value="{x:Bind ViewModel.Device.Volume, Mode=TwoWay}" Minimum="0" Maximum="{x:Bind ViewModel.Device.MaxVolume, Mode=OneWay}" Grid.Row="2" Header="Volume" HorizontalContentAlignment="Stretch" Margin="{StaticResource MediumLeftTopRightBottomMargin}"/>
+                    <Slider Value="{x:Bind ViewModel.Device.Volume, Mode=TwoWay}"
+                            Minimum="0"
+                            Maximum="{x:Bind ViewModel.Device.MaxVolume, Mode=OneWay}"
+                            Grid.Row="2"
+                            x:Uid="DeviceDetail_Volume"
+                            HorizontalContentAlignment="Stretch"
+                            Margin="{StaticResource MediumLeftTopRightBottomMargin}"
+                            Padding="{StaticResource ContentDialogPadding}"/>
                 </Grid>
             </controls:Expander>
         </Grid>

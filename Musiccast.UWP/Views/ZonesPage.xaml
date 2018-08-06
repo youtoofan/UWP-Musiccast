@@ -22,7 +22,7 @@
         <helpers:BooleanToOpacityConverter x:Name="booleanToOpacityConverter"/>
         <helpers:ObjectToDeviceConverter x:Name="objectToDeviceConverter"/>
         <DataTemplate x:Name="ContactListViewTemplate" x:DataType="local:Device">
-            <Grid HorizontalAlignment="Stretch" Opacity="{x:Bind IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" Padding="{StaticResource FlyoutContentThemePadding}" Background="OrangeRed">
+            <Grid HorizontalAlignment="Stretch" Opacity="{x:Bind IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" Padding="{StaticResource FlyoutContentThemePadding}" Background="{x:Bind BackGround, Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
@@ -51,7 +51,7 @@
             </Grid>
         </DataTemplate>
     </Page.Resources>
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    <Grid
         x:Name="ContentArea"
         Margin="{StaticResource MediumLeftRightMargin}">
         <Grid.RowDefinitions>
@@ -70,7 +70,7 @@
             <Button Grid.Column="0" HorizontalAlignment="Left" Background="Transparent">
                 <SymbolIcon Symbol="Link"/>
             </Button>
-            <TextBlock Grid.Column="1" HorizontalAlignment="Center" Text="Rooms" Style="{StaticResource SubtitleTextBlockStyle}"/>
+            <TextBlock Grid.Column="1" HorizontalAlignment="Center" x:Uid="Zones_Header" Style="{StaticResource SubtitleTextBlockStyle}"/>
             <Button Grid.Column="2" HorizontalAlignment="Right" Command="{x:Bind ViewModel.AddDeviceCommand}" Background="Transparent">
                 <SymbolIcon Symbol="Add"/>
             </Button>

@@ -1,11 +1,10 @@
 ﻿using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
+using Musiccast.Helpers;
+using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.UI.Xaml.Media;
 
 namespace Musiccast.Models
 {
@@ -16,15 +15,27 @@ namespace Musiccast.Models
         private string _subTitle;
         private int _volume;
         private int _maxVolume;
+        private Brush _backGround;
+        private Uri _imageUri;
 
         public event EventHandler<Device> PowerToggled;
         public event EventHandler<Device> VolumeChanged;
 
         public string Id { get; set; }
+        public string BaseUri { get; set; }
         public string FriendlyName { get; set; }
         public string Zone { get; set; }
-        public Uri ImageUri { get; set; }
+        
         public int ImageSize { get; set; }
+
+        public Uri ImageUri
+        {
+            get { return _imageUri; }
+            set
+            {
+                Set(ref _imageUri, value);
+            }
+        }
 
         public string Power
         {
@@ -69,11 +80,23 @@ namespace Musiccast.Models
         {
             get
             {
-                return IsOn ? "Aan" : "Uit";
+                return ResourceHelper.GetString(IsOn ? "Device_On" : "Device_Off");
             }
         }
 
+        [JsonIgnore]
+        public Brush BackGround
+        {
+            get
+            {
+                return _backGround;
+            }
 
+            set
+            {
+                Set(ref _backGround, value);
+            }
+        }
 
         public ICommand TogglePowerCommand
         {
@@ -107,5 +130,7 @@ namespace Musiccast.Models
                 Set(ref _maxVolume, value);
             }
         }
+
+
     }
 }
