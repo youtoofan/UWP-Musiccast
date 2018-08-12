@@ -223,7 +223,7 @@ namespace App4.ViewModels
 
             await SaveDevicesInStorageAsync(Devices.ToList());
 
-            await ThreadPool.RunAsync(async (state) =>
+            await ThreadPool.RunAsync((state) =>
             {
                 if (UDPListener == null)
                 {
