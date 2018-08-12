@@ -215,4 +215,7 @@
   <data name="DeviceDetail_Volume.Header" xml:space="preserve">
     <value>Volume</value>
   </data>
+  <data name="LoadingDevices.Text" xml:space="preserve">
+    <value>Searching for devices</value>
+  </data>
 </root>

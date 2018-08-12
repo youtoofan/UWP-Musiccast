@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -18,6 +19,7 @@ using Musiccast.Model;
 using Musiccast.Models;
 using Musiccast.Service;
 using Windows.Storage;
+using Windows.System.Threading;
 using Windows.UI;
 using Windows.UI.Xaml.Media;
 
@@ -48,10 +50,11 @@ namespace App4.ViewModels
         /// The devices.
         /// </value>
         public ObservableCollection<Device> Devices { get; set; }
+
         /// <summary>
-        /// The refresh timer
+        /// The UDP listener
         /// </summary>
-        public Timer refreshTimer;
+        public UDPListener UDPListener;
 
         /// <summary>
         /// Gets the add device command.
@@ -84,6 +87,14 @@ namespace App4.ViewModels
             }
         }
 
+        private bool _isLoading;
+
+        public bool IsLoading
+        {
+            get { return _isLoading; }
+            set { Set(ref _isLoading, value); }
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ZonesViewModel"/> class.
         /// </summary>
@@ -97,10 +108,48 @@ namespace App4.ViewModels
             {
                 Devices.Add(new Device() { FriendlyName = "Test" });
             }
-            else
+        }
+
+        /// <summary>
+        /// UDPs the listener device notification recieved.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="deviceId">The device identifier.</param>
+        private async void UDPListener_DeviceNotificationRecievedAsync(object sender, string deviceId)
+        {
+            var existingDevice = Devices.FirstOrDefault(w => w.Id.Equals(deviceId));
+            if (existingDevice == null)
+                return;
+
+            var updatedDevice = await service.RefreshDeviceAsync(existingDevice.Id, new Uri(existingDevice.BaseUri), existingDevice.Zone);
+
+            await DispatcherHelper.RunAsync(() =>
             {
-                refreshTimer = new Timer(async (e) => { await RefreshDevicesAsync(e); }, null, 10000, 10000);
-            }
+                try
+                {
+                    existingDevice.Power = updatedDevice.Power;
+                    existingDevice.Input = updatedDevice.Input.ToString();
+                    existingDevice.SubTitle = updatedDevice.NowPlayingInformation;
+                    existingDevice.BackGround = new SolidColorBrush(Colors.OrangeRed);
+                    existingDevice.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
+                    existingDevice.ImageSize = existingDevice.ImageSize;
+
+                    if (string.IsNullOrEmpty(existingDevice.FriendlyName))
+                        existingDevice.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
+
+                    existingDevice.PowerToggled -= async (s, args) => { await Item_PowerToggledAsync(s, args); };
+                    existingDevice.PowerToggled += async (s, args) => { await Item_PowerToggledAsync(s, args); };
+
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex, "Exception");
+                }
+                finally
+                {
+                    IsLoading = false;
+                }
+            });
         }
 
         /// <summary>
@@ -125,18 +174,30 @@ namespace App4.ViewModels
 
                 await DispatcherHelper.RunAsync(() =>
                 {
-                    e.Power = updatedDevice.Power;
-                    e.Input = updatedDevice.Input.ToString();
-                    e.SubTitle = updatedDevice.NowPlayingInformation;
-                    e.BackGround = new SolidColorBrush(Colors.OrangeRed);
-                    e.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
-                    e.ImageSize = e.ImageSize;
+                    try
+                    {
+                            e.Power = updatedDevice.Power;
+                            e.Input = updatedDevice.Input.ToString();
+                            e.SubTitle = updatedDevice.NowPlayingInformation;
+                            e.BackGround = new SolidColorBrush(Colors.OrangeRed);
+                            e.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
+                            e.ImageSize = e.ImageSize;
 
-                    if (string.IsNullOrEmpty(e.FriendlyName))
-                        e.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
+                            if (string.IsNullOrEmpty(e.FriendlyName))
+                                e.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
 
-                    e.PowerToggled -= async (s, args) => { await Item_PowerToggledAsync(s, args); };
-                    e.PowerToggled += async (s, args) => { await Item_PowerToggledAsync(s, args); };
+                            e.PowerToggled -= async (s, args) => { await Item_PowerToggledAsync(s, args); };
+                            e.PowerToggled += async (s, args) => { await Item_PowerToggledAsync(s, args); };
+                    
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex, "Exception");
+                    }
+                    finally
+                    {
+                        IsLoading = false;
+                    }
                 });
             }
         }
@@ -155,22 +216,32 @@ namespace App4.ViewModels
                 if (temp != null)
                 {
                     Devices.Add(item);
-                   // await new UDPListener().ListenAsync(AddressToInt(item.BaseUri), 41100);
                 }
             }
 
             await RefreshDevicesAsync(null);
 
             await SaveDevicesInStorageAsync(Devices.ToList());
+
+            await ThreadPool.RunAsync(async (state) =>
+            {
+                if (UDPListener == null)
+                {
+                    UDPListener = new UDPListener();
+                    UDPListener.DeviceNotificationRecieved += UDPListener_DeviceNotificationRecievedAsync;
+                    UDPListener.StartListener(41100);
+                }
+            });
         }
 
-        private long AddressToInt(string addr)
+        
+
+        private IPAddress AddressToIPAddress(string addr)
         {
             // careful of sign extension: convert to uint first;
             // unsigned NetworkToHostOrder ought to be provided.
-            var address = IPAddress.Parse(addr.Substring(7, 13));
-            var temp = BitConverter.ToUInt32(address.GetAddressBytes().Reverse().ToArray(), 0);
-            return (uint)IPAddress.NetworkToHostOrder(temp);
+            var address = addr.StartsWith("http", StringComparison.CurrentCultureIgnoreCase) ? IPAddress.Parse(addr.Substring(7, 13)) : IPAddress.Parse(addr);
+            return address;
         }
 
         /// <summary>
@@ -194,9 +265,13 @@ namespace App4.ViewModels
         /// <returns></returns>
         public async Task FindNewDevices()
         {
-            service = new MusicCastService();
-            service.DeviceFound += Service_DeviceFoundAsync;
-            await service.LoadRoomsAsync();
+            await DispatcherHelper.RunAsync(async () =>
+            {
+                IsLoading = true;
+                service = new MusicCastService();
+                service.DeviceFound += Service_DeviceFoundAsync;
+                await service.LoadRoomsAsync();
+            });
         }
 
         /// <summary>
@@ -208,6 +283,8 @@ namespace App4.ViewModels
         {
             await DispatcherHelper.RunAsync(() =>
             {
+                IsLoading = false;
+
                 if (Devices.Where(w => w != null).Select(s => s.Id + s.Zone).Contains(device.Id + device.Zone))
                     return;
 

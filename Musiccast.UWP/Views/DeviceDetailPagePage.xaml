@@ -34,9 +34,9 @@
                 <SymbolIcon Symbol="Home"/>
             </Button>
             <TextBlock Grid.Column="1" HorizontalAlignment="Center" Text="{x:Bind ViewModel.Device.FriendlyName, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}"/>
-            <Button Grid.Column="2" HorizontalAlignment="Right" Command="{x:Bind ViewModel.Device.TogglePowerCommand}" Background="Transparent">
-                <SymbolIcon Symbol="Target"/>
-            </Button>
+            <ToggleButton Grid.Column="2" HorizontalAlignment="Right" Command="{x:Bind ViewModel.Device.TogglePowerCommand}" IsChecked="{x:Bind ViewModel.Device.IsOn, Mode=OneWay}" Style="{StaticResource ToggleButtonRevealStyle}">
+                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ViewModel.Device.IsOnString, Mode=OneWay}"/>
+            </ToggleButton>
         </Grid>
         <Grid Grid.Row="1" Opacity="{x:Bind ViewModel.Device.IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" Padding="{StaticResource FlyoutContentThemePadding}" Background="{x:Bind ViewModel.Device.BackGround, Mode=OneWay}">
             

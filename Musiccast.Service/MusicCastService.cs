@@ -9,6 +9,7 @@ using Musiccast.Model;
 using Newtonsoft.Json;
 using Windows.System.Threading;
 using System.Runtime.Serialization;
+using System.Diagnostics;
 
 namespace Musiccast.Service
 {
@@ -27,9 +28,17 @@ namespace Musiccast.Service
         /// </summary>
         private const string Info = "/YamahaExtendedControl/v1/system/getDeviceInfo";
         /// <summary>
+        /// The features
+        /// </summary>
+        private const string Features = "/YamahaExtendedControl/v1/system/getFeatures";
+        /// <summary>
         /// The status
         /// </summary>
         private const string Status = "/YamahaExtendedControl/v1/{0}/getStatus";
+        /// <summary>
+        /// The names
+        /// </summary>
+        private const string Names = "/YamahaExtendedControl/v1/system/getNameText?id={0}";
         /// <summary>
         /// The location information
         /// </summary>
@@ -42,6 +51,14 @@ namespace Musiccast.Service
         /// The tuner play information
         /// </summary>
         private const string TunerPlayInfo = "/YamahaExtendedControl/v1/tuner/getPlayInfo";
+        /// <summary>
+        /// The tuner presets
+        /// </summary>
+        private const string TunerPresets = "/YamahaExtendedControl/v1/tuner/getPresetInfo?band={0}";
+        /// <summary>
+        /// The net usb presets
+        /// </summary>
+        private const string NetUsbPresets = "/YamahaExtendedControl/v1/netusb/getPresetInfo";
         /// <summary>
         /// The net radio play information
         /// </summary>
@@ -72,7 +89,8 @@ namespace Musiccast.Service
             foreach (var zone in location.zone_list.ValidZones)
             {
                 var status = await this.GetDeviceStatusAsync(baseUri, zone);
-                var convertedModel = ConvertApiDeviceToDevice(device.X_device.X_URLBase, zone, device, status, info);
+                var friendlyName = await this.GetDeviceZoneFriendlyNameAsync(baseUri, zone);
+                var convertedModel = ConvertApiDeviceToDevice(device.X_device.X_URLBase, zone, friendlyName.text, device, status, info);
 
                 if(status.input == Inputs.tuner)
                 {
@@ -94,7 +112,7 @@ namespace Musiccast.Service
         /// <param name="status">The status.</param>
         /// <param name="info">The information.</param>
         /// <returns></returns>
-        private MusicCastDevice ConvertApiDeviceToDevice(string baseUri, string zone, DLNADescription device, GetStatusResponse status, GetDeviceInfoResponse info)
+        private MusicCastDevice ConvertApiDeviceToDevice(string baseUri, string zone, string friendlyName, DLNADescription device, GetStatusResponse status, GetDeviceInfoResponse info)
         {
             return new MusicCastDevice()
             {
@@ -102,7 +120,7 @@ namespace Musiccast.Service
                 BaseUri = baseUri,
                 Zone = zone,
                 ModelName = info.model_name,
-                FriendlyName = device.device.friendlyName,
+                FriendlyName = friendlyName,
                 Location = (device.Location),
                 ImagePath = (device.device.iconList.Last().url),
                 ImageSize = device.device.iconList.Last().width,
@@ -121,10 +139,25 @@ namespace Musiccast.Service
         {
             using (HttpClient client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
-                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                AddClientHeaders(client);
                 var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Status, zoneName)));
                 return JsonConvert.DeserializeObject<GetStatusResponse>(result);
+            }
+        }
+
+        /// <summary>
+        /// Gets the device zone friendly name asynchronous.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <param name="zoneName">Name of the zone.</param>
+        /// <returns></returns>
+        private async Task<GetNameTextResponse> GetDeviceZoneFriendlyNameAsync(Uri baseUri, string zoneName)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                AddClientHeaders(client);
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Names, zoneName)));
+                return JsonConvert.DeserializeObject<GetNameTextResponse>(result);
             }
         }
 
@@ -137,10 +170,24 @@ namespace Musiccast.Service
         {
             using (HttpClient client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
-                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                AddClientHeaders(client);
                 var result = await client.GetStringAsync(new Uri(baseUri, Info));
                 return JsonConvert.DeserializeObject<GetDeviceInfoResponse>(result);
+            }
+        }
+
+        /// <summary>
+        /// Gets the features.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <returns></returns>
+        private async Task<GetFeaturesResponse> GetFeatures(Uri baseUri)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                AddClientHeaders(client);
+                var result = await client.GetStringAsync(new Uri(baseUri, Features));
+                return JsonConvert.DeserializeObject<GetFeaturesResponse>(result);
             }
         }
 
@@ -153,8 +200,7 @@ namespace Musiccast.Service
         {
             using (HttpClient client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
-                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                AddClientHeaders(client);
                 var result = await client.GetStringAsync(new Uri(baseUri, LocationInfo));
                 return JsonConvert.DeserializeObject<GetLocationInfoResponse>(result);
             }
@@ -169,8 +215,7 @@ namespace Musiccast.Service
         {
             using (HttpClient client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
-                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                AddClientHeaders(client);
                 var result = await client.GetStringAsync(new Uri(baseUri, TunerPlayInfo));
                 return JsonConvert.DeserializeObject<GetTunerPlayInfoResponse>(result);
             }
@@ -185,11 +230,24 @@ namespace Musiccast.Service
         {
             using (HttpClient client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
-                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                AddClientHeaders(client);
                 var result = await client.GetStringAsync(new Uri(baseUri, NetRadioPlayInfo));
                 return JsonConvert.DeserializeObject<GetNetUsbPlayInfoResponse>(result);
             }
+        }
+
+        /// <summary>
+        /// Adds the client headers.
+        /// </summary>
+        /// <param name="client">The client.</param>
+        /// <returns></returns>
+        private void AddClientHeaders(HttpClient client)
+        {
+            if (client == null)
+                return;
+
+            client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.41(UWP)");
+            client.DefaultRequestHeaders.Add("X-AppPort", "41100");
         }
 
         #endregion
@@ -259,8 +317,7 @@ namespace Musiccast.Service
         {
             using (HttpClient client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
-                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                AddClientHeaders(client);
                 var result = await client.GetStringAsync(new Uri(baseUri, string.Format(TogglePower, zoneName)));
                 await Task.Delay(1000);
             }
@@ -277,11 +334,12 @@ namespace Musiccast.Service
         {
             using (HttpClient client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.40(UWP)");
-                client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+                AddClientHeaders(client);
                 var result = await client.GetStringAsync(new Uri(baseUri, string.Format(SetVolume, zoneName, volume)));
             }
         }
+
+        
 
         #endregion
     }

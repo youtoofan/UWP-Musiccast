@@ -34,11 +34,10 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0">
                     <TextBlock Text="{x:Bind FriendlyName, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}" VerticalAlignment="Top" HorizontalAlignment="Left" />
-                    <TextBlock Text="{x:Bind Zone, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Top" HorizontalAlignment="Center" Padding="{StaticResource TextControlThemePadding}"/>
                 </StackPanel>
-                <Button Command="{x:Bind TogglePowerCommand}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top">
-                    <SymbolIcon Symbol="Target"/>
-                </Button>
+                <ToggleButton Command="{x:Bind TogglePowerCommand}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" IsChecked="{x:Bind IsOn, Mode=OneWay}" Style="{StaticResource ToggleButtonRevealStyle}">
+                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind IsOnString, Mode=OneWay}"/>
+                </ToggleButton>
                 <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="2">
                     <Border BorderThickness="1,1,1,1">
                         <SymbolIcon VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Symbol="MusicInfo"></SymbolIcon>
@@ -75,7 +74,6 @@
                 <SymbolIcon Symbol="Add"/>
             </Button>
         </Grid>
-
         <controls:AdaptiveGridView Name="AdaptiveGridViewControl"
                                    OneRowModeEnabled="False"
                                    ItemHeight="200"
@@ -86,5 +84,16 @@
                                    ItemClickCommand="{x:Bind ViewModel.ViewDeviceDetailCommand}"
                   ItemTemplate="{StaticResource ContactListViewTemplate}">
         </controls:AdaptiveGridView>
+        <controls:Loading x:Name="LoadingControl" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.RowSpan="2" IsLoading="{x:Bind ViewModel.IsLoading, Mode=OneWay}">
+            <controls:Loading.Background>
+                <SolidColorBrush Color="Black" Opacity="0.7" />
+            </controls:Loading.Background>
+            <ContentControl x:Name="LoadingContentControl">
+                <StackPanel Orientation="Horizontal" Padding="12">
+                    <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" Margin="0,0,12,0"/>
+                    <TextBlock x:Uid="LoadingDevices" VerticalAlignment="Center" Foreground="White" />
+                </StackPanel>
+            </ContentControl>
+        </controls:Loading>
     </Grid>
 </Page>

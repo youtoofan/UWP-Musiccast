@@ -108,10 +108,14 @@
   <ItemGroup>
     <Compile Include="DLNADescription.cs" />
     <Compile Include="GetDeviceInfoResponse.cs" />
+    <Compile Include="GetFeaturesResponse.cs" />
     <Compile Include="GetLocationInfoResponse.cs" />
+    <Compile Include="GetNameTextResponse.cs" />
     <Compile Include="GetNetUsbPlayInfoResponse.cs" />
+    <Compile Include="GetNetUsbPresetInfo.cs" />
     <Compile Include="GetStatusResponse.cs" />
     <Compile Include="GetTunerPlayInfoResponse.cs" />
+    <Compile Include="GetTunerPresetInfo.cs" />
     <Compile Include="Inputs.cs" />
     <Compile Include="MusicCastDevice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
