@@ -35,7 +35,7 @@
                 <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0">
                     <TextBlock Text="{x:Bind FriendlyName, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}" VerticalAlignment="Top" HorizontalAlignment="Left" />
                 </StackPanel>
-                <ToggleButton Command="{x:Bind TogglePowerCommand}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" IsChecked="{x:Bind IsOn, Mode=OneWay}" Style="{StaticResource ToggleButtonRevealStyle}">
+                <ToggleButton Command="{x:Bind TogglePowerCommand}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" IsChecked="{x:Bind IsOn, Mode=OneWay}">
                     <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind IsOnString, Mode=OneWay}"/>
                 </ToggleButton>
                 <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="2">

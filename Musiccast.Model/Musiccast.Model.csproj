@@ -118,6 +118,7 @@
     <Compile Include="GetTunerPresetInfo.cs" />
     <Compile Include="Inputs.cs" />
     <Compile Include="MusicCastDevice.cs" />
+    <Compile Include="MusicCastNotification.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Musiccast.Model.rd.xml" />
   </ItemGroup>

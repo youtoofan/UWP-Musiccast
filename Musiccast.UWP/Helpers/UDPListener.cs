@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Musiccast.Model;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,15 +27,22 @@ namespace Musiccast.Helpers
         /// <param name="port">The port.</param>
         public void StartListener(int port)
         {
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
+            try
+            {
+                IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
 
-            var multicastIp = IPAddress.Parse(_ssdpMulticastIp);
-            _multicastEndPoint = new IPEndPoint(multicastIp, _endpointPort);
-            _udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                var multicastIp = IPAddress.Parse(_ssdpMulticastIp);
+                _multicastEndPoint = new IPEndPoint(multicastIp, _endpointPort);
+                _udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-            var option = new MulticastOption(multicastIp);
-            _udpSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, option);
-            _udpSocket.Bind(localEndPoint);
+                var option = new MulticastOption(multicastIp);
+                _udpSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, option);
+                _udpSocket.Bind(localEndPoint);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
 
             Debug.WriteLine("UDP-Socket setup done...\r\n");
 
@@ -50,8 +58,8 @@ namespace Musiccast.Helpers
                     {
                         var temp = Encoding.UTF8.GetString(receiveBuffer, 0, receivedBytes);
                         Debug.WriteLine(temp);
-                        dynamic result = JsonConvert.DeserializeObject(temp);
-                        if (result != null && result.device_id != null)
+                        var result = JsonConvert.DeserializeObject<MusicCastNotification>(temp);
+                        if (result != null && !string.IsNullOrEmpty(result.device_id))
                         {
                             string id = result.device_id;
                             DeviceNotificationRecieved(this, id);
@@ -61,12 +69,19 @@ namespace Musiccast.Helpers
             }
         }
 
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources.
+        /// </summary>
+        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed) return;

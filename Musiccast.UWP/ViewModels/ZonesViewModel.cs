@@ -234,8 +234,24 @@ namespace App4.ViewModels
             });
         }
 
-        
+        /// <summary>
+        /// Unregisters this instance from the Messenger class.
+        /// <para>To cleanup additional resources, override this method, clean
+        /// up and then call base.Cleanup().</para>
+        /// </summary>
+        public override void Cleanup()
+        {
+            if (UDPListener != null)
+                UDPListener.Dispose();
 
+            base.Cleanup();
+        }
+
+        /// <summary>
+        /// Addresses to ip address.
+        /// </summary>
+        /// <param name="addr">The addr.</param>
+        /// <returns></returns>
         private IPAddress AddressToIPAddress(string addr)
         {
             // careful of sign extension: convert to uint first;

@@ -34,7 +34,7 @@
                 <SymbolIcon Symbol="Home"/>
             </Button>
             <TextBlock Grid.Column="1" HorizontalAlignment="Center" Text="{x:Bind ViewModel.Device.FriendlyName, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}"/>
-            <ToggleButton Grid.Column="2" HorizontalAlignment="Right" Command="{x:Bind ViewModel.Device.TogglePowerCommand}" IsChecked="{x:Bind ViewModel.Device.IsOn, Mode=OneWay}" Style="{StaticResource ToggleButtonRevealStyle}">
+            <ToggleButton Grid.Column="2" HorizontalAlignment="Right" Command="{x:Bind ViewModel.Device.TogglePowerCommand}" IsChecked="{x:Bind ViewModel.Device.IsOn, Mode=OneWay}">
                 <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ViewModel.Device.IsOnString, Mode=OneWay}"/>
             </ToggleButton>
         </Grid>
