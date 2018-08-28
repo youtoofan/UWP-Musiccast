@@ -34,7 +34,7 @@ namespace Musiccast.Service
         /// <summary>
         /// The status
         /// </summary>
-        private const string Status = "/YamahaExtendedControl/v1/{0}/getStatus";
+        private const string Status = "/YamahaExtendedControl/v2/{0}/getStatus";
         /// <summary>
         /// The names
         /// </summary>
@@ -50,7 +50,7 @@ namespace Musiccast.Service
         /// <summary>
         /// The tuner play information
         /// </summary>
-        private const string TunerPlayInfo = "/YamahaExtendedControl/v1/tuner/getPlayInfo";
+        private const string TunerPlayInfo = "/YamahaExtendedControl/v2/tuner/getPlayInfo";
         /// <summary>
         /// The tuner presets
         /// </summary>
@@ -181,13 +181,44 @@ namespace Musiccast.Service
         /// </summary>
         /// <param name="baseUri">The base URI.</param>
         /// <returns></returns>
-        private async Task<GetFeaturesResponse> GetFeatures(Uri baseUri)
+        public async Task<GetFeaturesResponse> GetFeatures(Uri baseUri)
         {
             using (HttpClient client = new HttpClient())
             {
                 AddClientHeaders(client);
                 var result = await client.GetStringAsync(new Uri(baseUri, Features));
                 return JsonConvert.DeserializeObject<GetFeaturesResponse>(result);
+            }
+        }
+
+        /// <summary>
+        /// Gets the tuner presets.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <param name="band">The band.</param>
+        /// <returns></returns>
+        public async Task<GetTunerPresetInfo> GetTunerPresets(Uri baseUri, string band)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                AddClientHeaders(client);
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(TunerPresets, band)));
+                return JsonConvert.DeserializeObject<GetTunerPresetInfo>(result);
+            }
+        }
+
+        /// <summary>
+        /// Gets the usb presets.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <returns></returns>
+        public async Task<GetNetUsbPresetInfo> GetUsbPresets(Uri baseUri)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                AddClientHeaders(client);
+                var result = await client.GetStringAsync(new Uri(baseUri, NetUsbPresets));
+                return JsonConvert.DeserializeObject<GetNetUsbPresetInfo>(result);
             }
         }
 

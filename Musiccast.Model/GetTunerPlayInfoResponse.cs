@@ -32,7 +32,7 @@ namespace Musiccast.Model
 
                 if (band.Equals("DAB", StringComparison.OrdinalIgnoreCase))
                 {
-                    return dab.dls;
+                    return string.IsNullOrEmpty(dab.dls) ? dab.service_label : dab.dls;
                 }
 
                 return string.Empty;

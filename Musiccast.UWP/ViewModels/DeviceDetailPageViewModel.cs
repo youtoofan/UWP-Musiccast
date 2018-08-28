@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using App4.Services;
@@ -29,7 +30,20 @@ namespace App4.ViewModels
         /// The device
         /// </summary>
         private Device _device;
-
+        /// <summary>
+        /// Gets or sets the input list.
+        /// </summary>
+        /// <value>
+        /// The input list.
+        /// </value>
+        public ObservableCollection<Input> InputList { get; set; }
+        /// <summary>
+        /// Gets or sets the favorites list.
+        /// </summary>
+        /// <value>
+        /// The favorites list.
+        /// </value>
+        public ObservableCollection<Input> FavoritesList { get; set; }
         /// <summary>
         /// Gets or sets the device.
         /// </summary>
@@ -69,6 +83,9 @@ namespace App4.ViewModels
         /// <param name="navigationService">The navigation service.</param>
         public DeviceDetailPageViewModel(NavigationServiceEx navigationService)
         {
+            this.InputList = new ObservableCollection<Input>();
+            this.FavoritesList = new ObservableCollection<Input>();
+
             this.navigationService = navigationService;
             navigationService.Navigated += NavigationService_NavigatedAsync;
         }
@@ -128,9 +145,16 @@ namespace App4.ViewModels
                 service = new MusicCastService();
 
             var updatedDevice = await service.RefreshDeviceAsync(Device.Id, new Uri(Device.BaseUri), Device.Zone);
+            var features = await service.GetFeatures(new Uri(Device.BaseUri));
+            var tunerPresetsDAB = await service.GetTunerPresets(new Uri(Device.BaseUri), "dab");
+            var tunerPresetsFM = await service.GetTunerPresets(new Uri(Device.BaseUri), "fm");
+            var usbPresets = await service.GetUsbPresets(new Uri(Device.BaseUri));
 
             await DispatcherHelper.RunAsync(() =>
             {
+                this.InputList.Clear();
+                this.FavoritesList.Clear();
+
                 Device.Power = updatedDevice.Power;
                 Device.Input = updatedDevice.Input.ToString();
                 Device.SubTitle = updatedDevice.NowPlayingInformation;
@@ -138,6 +162,47 @@ namespace App4.ViewModels
                 Device.MaxVolume = updatedDevice.MaxVolume;
                 Device.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
                 Device.ImageSize = updatedDevice.ImageSize;
+
+                foreach (var item in features.system.input_list)
+                {
+                    this.InputList.Add(InputToGlyphAndTitleConverter.ConvertInput(item.id));
+                }
+
+                foreach (var item in tunerPresetsDAB.preset_info)
+                {
+                    if (string.IsNullOrEmpty(item.text))
+                        continue;
+
+                    this.FavoritesList.Add(new Input()
+                    {
+                        Name = item.text,
+                        Icon = item.band
+                    });
+                }
+
+                foreach (var item in tunerPresetsFM.preset_info)
+                {
+                    if (string.IsNullOrEmpty(item.text))
+                        continue;
+
+                    this.FavoritesList.Add(new Input()
+                    {
+                        Name = item.text,
+                        Icon = item.band
+                    });
+                }
+
+                foreach (var item in usbPresets.preset_info)
+                {
+                    if (string.IsNullOrEmpty(item.text))
+                        continue;
+
+                    this.FavoritesList.Add(new Input()
+                    {
+                        Name = item.text,
+                        Icon = item.input
+                    });
+                }
             });
         }
     }

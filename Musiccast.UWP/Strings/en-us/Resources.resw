@@ -218,4 +218,7 @@
   <data name="LoadingDevices.Text" xml:space="preserve">
     <value>Searching for devices</value>
   </data>
+  <data name="SearchButtonInProgress.Content" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
 </root>

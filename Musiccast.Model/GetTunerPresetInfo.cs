@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Musiccast.Model
 {
-    class GetTunerPresetInfo
+    public class GetTunerPresetInfo
     {
         public int response_code { get; set; }
         public TunerPresetInfo[] preset_info { get; set; }

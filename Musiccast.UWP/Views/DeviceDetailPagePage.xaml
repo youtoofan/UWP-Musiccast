@@ -6,6 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     xmlns:helpers="using:Musiccast.Helpers"
+    xmlns:local="using:Musiccast.Models"
     Style="{StaticResource PageStyle}"
     DataContext="{Binding DeviceDetailPageViewModel, Source={StaticResource Locator}}"
     mc:Ignorable="d">
@@ -13,6 +14,26 @@
         <helpers:UriToBitmapConverter x:Name="uriToBitmapConverter"/>
         <helpers:BooleanToColorConverter x:Name="booleanToColorConverter"/>
         <helpers:BooleanToOpacityConverter x:Name="booleanToOpacityConverter"/>
+        <DataTemplate x:Name="InputListViewTemplate" x:DataType="local:Input">
+            <Grid HorizontalAlignment="Stretch" Padding="{StaticResource FlyoutContentThemePadding}" Background="White">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <FontIcon HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontFamily="Segoe MDL2 Assets" Glyph="{x:Bind Icon}" Foreground="Black"/>
+                <TextBlock Grid.Row="1" HorizontalAlignment="Center" Text="{x:Bind Name, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Black"/>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Name="FavoritesListViewTemplate" x:DataType="local:Input">
+            <Grid HorizontalAlignment="Stretch" Padding="{StaticResource FlyoutContentThemePadding}" Background="White">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" HorizontalAlignment="Center" Text="{x:Bind Name, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Black"/>
+                <TextBlock Grid.Row="1" HorizontalAlignment="Center" Text="{x:Bind Icon, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Black"/>
+            </Grid>
+        </DataTemplate>
     </Page.Resources>
     <Grid
         x:Name="ContentArea">
@@ -39,7 +60,26 @@
             </ToggleButton>
         </Grid>
         <Grid Grid.Row="1" Opacity="{x:Bind ViewModel.Device.IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" Padding="{StaticResource FlyoutContentThemePadding}" Background="{x:Bind ViewModel.Device.BackGround, Mode=OneWay}">
-            
+            <StackPanel Orientation="Vertical" VerticalAlignment="Stretch">
+                <controls:AdaptiveGridView 
+                                   OneRowModeEnabled="False"
+                                   ItemHeight="100"
+                                   DesiredWidth="160"
+                                   SelectionMode="Single"
+                                   IsItemClickEnabled="True"
+                                   ItemsSource="{x:Bind ViewModel.FavoritesList, Mode=OneWay}"
+                  ItemTemplate="{StaticResource FavoritesListViewTemplate}">
+                </controls:AdaptiveGridView>
+                <controls:AdaptiveGridView 
+                                   OneRowModeEnabled="False"
+                                   ItemHeight="100"
+                                   DesiredWidth="100"
+                                   SelectionMode="Single"
+                                   IsItemClickEnabled="True"
+                                   ItemsSource="{x:Bind ViewModel.InputList, Mode=OneWay}"
+                  ItemTemplate="{StaticResource InputListViewTemplate}">
+                </controls:AdaptiveGridView>
+            </StackPanel>
         </Grid>
         <Grid Grid.Row="2">
             <controls:Expander x:Name="Expander2" VerticalAlignment="Top" Margin="0"

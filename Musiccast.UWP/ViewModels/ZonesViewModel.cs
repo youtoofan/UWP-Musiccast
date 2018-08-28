@@ -87,6 +87,16 @@ namespace App4.ViewModels
             }
         }
 
+        public ICommand CancelSearchCommand
+        {
+            get
+            {
+                return new RelayCommand(async () => { await CancelFindNewDevices(); });
+            }
+        }
+
+        
+
         private bool _isLoading;
 
         public bool IsLoading
@@ -101,8 +111,8 @@ namespace App4.ViewModels
         /// <param name="navigationService">The navigation service.</param>
         public ZonesViewModel(NavigationServiceEx navigationService)
         {
-            this.navigationService = navigationService;
             Devices = new ObservableCollection<Device>();
+            this.navigationService = navigationService;
 
             if (IsInDesignMode)
             {
@@ -287,6 +297,18 @@ namespace App4.ViewModels
                 service = new MusicCastService();
                 service.DeviceFound += Service_DeviceFoundAsync;
                 await service.LoadRoomsAsync();
+            });
+        }
+
+        /// <summary>
+        /// Cancels the find new devices.
+        /// </summary>
+        /// <returns></returns>
+        private async Task CancelFindNewDevices()
+        {
+            await DispatcherHelper.RunAsync(() =>
+            {
+                IsLoading = false;
             });
         }
 

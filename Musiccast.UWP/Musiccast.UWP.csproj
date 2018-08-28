@@ -130,6 +130,7 @@
     <Compile Include="Helpers\BooleanToColorConverter.cs" />
     <Compile Include="Helpers\BooleanToOpacityConverter.cs" />
     <Compile Include="Helpers\EnumToBooleanConverter.cs" />
+    <Compile Include="Helpers\InputToGlyphAndTitleConverter.cs" />
     <Compile Include="Helpers\ItemClickCommand.cs" />
     <Compile Include="Helpers\Json.cs" />
     <Compile Include="Helpers\ObjectToDeviceConverter.cs" />
@@ -140,6 +141,7 @@
     <Compile Include="Helpers\UriHelper.cs" />
     <Compile Include="Helpers\UriToBitmapConverter.cs" />
     <Compile Include="Models\Device.cs" />
+    <Compile Include="Models\Input.cs" />
     <Compile Include="Services\ActivationService.cs" />
     <Compile Include="Activation\DefaultLaunchActivationHandler.cs" />
     <Compile Include="Services\NavigationServiceEx.cs" />
