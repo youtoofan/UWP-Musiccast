@@ -43,7 +43,7 @@ namespace App4.ViewModels
         /// <value>
         /// The favorites list.
         /// </value>
-        public ObservableCollection<Input> FavoritesList { get; set; }
+        public ObservableCollection<Preset> FavoritesList { get; set; }
         /// <summary>
         /// Gets or sets the device.
         /// </summary>
@@ -77,6 +77,24 @@ namespace App4.ViewModels
             }
         }
 
+        public ICommand FavoriteClickedCommand
+        {
+            get
+            {
+                return new RelayCommand<Preset>((item) => ChangeDevicePreset(item));
+            }
+        }
+
+        
+
+        public ICommand InputClickedCommand
+        {
+            get
+            {
+                return new RelayCommand<Input>((item) => ChangeDeviceInput(item));
+            }
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DeviceDetailPageViewModel"/> class.
         /// </summary>
@@ -84,7 +102,7 @@ namespace App4.ViewModels
         public DeviceDetailPageViewModel(NavigationServiceEx navigationService)
         {
             this.InputList = new ObservableCollection<Input>();
-            this.FavoritesList = new ObservableCollection<Input>();
+            this.FavoritesList = new ObservableCollection<Preset>();
 
             this.navigationService = navigationService;
             navigationService.Navigated += NavigationService_NavigatedAsync;
@@ -136,6 +154,34 @@ namespace App4.ViewModels
         }
 
         /// <summary>
+        /// Changes the device preset.
+        /// </summary>
+        /// <param name="item">The item.</param>
+        private async void ChangeDevicePreset(Preset item)
+        {
+            if (service == null)
+                service = new MusicCastService();
+
+            if (item.InputType == Musiccast.Model.Inputs.tuner)
+                await service.RecallTunerPresetAsync(new Uri(Device.BaseUri), Device.Zone, item.Band, item.Index);
+
+            if (item.InputType == Musiccast.Model.Inputs.usb)
+                await service.RecallUsbPresetAsync(new Uri(Device.BaseUri), Device.Zone, item.Index);
+        }
+
+        /// <summary>
+        /// Changes the device input.
+        /// </summary>
+        /// <param name="item">The item.</param>
+        private async void ChangeDeviceInput(Input item)
+        {
+            if (service == null)
+                service = new MusicCastService();
+
+            await service.ChangeDeviceInputAsync(new Uri(Device.BaseUri), Device.Zone, item.Id);
+        }
+
+        /// <summary>
         /// Refreshes the device asynchronous.
         /// </summary>
         /// <returns></returns>
@@ -168,39 +214,53 @@ namespace App4.ViewModels
                     this.InputList.Add(InputToGlyphAndTitleConverter.ConvertInput(item.id));
                 }
 
-                foreach (var item in tunerPresetsDAB.preset_info)
+                for (int i = 0; i < tunerPresetsDAB.preset_info.Count; i++)
                 {
+                    Musiccast.Model.TunerPresetInfo item = tunerPresetsDAB.preset_info[i];
+
                     if (string.IsNullOrEmpty(item.text))
                         continue;
 
-                    this.FavoritesList.Add(new Input()
+                    this.FavoritesList.Add(new Preset()
                     {
-                        Name = item.text,
-                        Icon = item.band
+                        Band = item.band,
+                        Text = item.text,
+                        Number = item.number,
+                        Index = i + 1,
+                        InputType = Musiccast.Model.Inputs.tuner
                     });
                 }
 
-                foreach (var item in tunerPresetsFM.preset_info)
+                for (int i = 0; i < tunerPresetsFM.preset_info.Count; i++)
                 {
+                    Musiccast.Model.TunerPresetInfo item = tunerPresetsFM.preset_info[i];
+
                     if (string.IsNullOrEmpty(item.text))
                         continue;
 
-                    this.FavoritesList.Add(new Input()
+                    this.FavoritesList.Add(new Preset()
                     {
-                        Name = item.text,
-                        Icon = item.band
+                        Band = item.band,
+                        Text = item.text,
+                        Number = item.number,
+                        Index = i + 1,
+                        InputType = Musiccast.Model.Inputs.tuner
                     });
                 }
 
-                foreach (var item in usbPresets.preset_info)
+                for (int i = 0; i < usbPresets.preset_info.Count; i++)
                 {
+                    Musiccast.Model.NetUsbPresetInfo item = usbPresets.preset_info[i];
+
                     if (string.IsNullOrEmpty(item.text))
                         continue;
 
-                    this.FavoritesList.Add(new Input()
+                    this.FavoritesList.Add(new Preset()
                     {
-                        Name = item.text,
-                        Icon = item.input
+                        Band = item.input,
+                        Text = item.text,
+                        Index = i + 1,
+                        InputType = Musiccast.Model.Inputs.usb
                     });
                 }
             });

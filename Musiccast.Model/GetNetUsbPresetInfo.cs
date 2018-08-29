@@ -9,7 +9,7 @@ namespace Musiccast.Model
     public class GetNetUsbPresetInfo
     {
         public int response_code { get; set; }
-        public NetUsbPresetInfo[] preset_info { get; set; }
+        public List<NetUsbPresetInfo> preset_info { get; set; }
         public string[] func_list { get; set; }
     }
 

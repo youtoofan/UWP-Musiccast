@@ -120,6 +120,7 @@
     <Compile Include="MusicCastDevice.cs" />
     <Compile Include="MusicCastNotification.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SetDevicePropertyResponse.cs" />
     <EmbeddedResource Include="Properties\Musiccast.Model.rd.xml" />
   </ItemGroup>
   <ItemGroup>

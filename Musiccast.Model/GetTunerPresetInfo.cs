@@ -9,7 +9,7 @@ namespace Musiccast.Model
     public class GetTunerPresetInfo
     {
         public int response_code { get; set; }
-        public TunerPresetInfo[] preset_info { get; set; }
+        public List<TunerPresetInfo> preset_info { get; set; }
         public string[] func_list { get; set; }
     }
 

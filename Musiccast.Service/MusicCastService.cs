@@ -67,6 +67,14 @@ namespace Musiccast.Service
         /// The set volume
         /// </summary>
         private const string SetVolume = "/YamahaExtendedControl/v1/{0}/setVolume?volume={1}";
+        /// <summary>
+        /// The recall tuner preset
+        /// </summary>
+        private const string RecallTunerPreset = "/YamahaExtendedControl/v1/tuner/recallPreset?zone={0}&band={1}&num={2}";
+        /// <summary>
+        /// The recall usb preset
+        /// </summary>
+        private const string RecallUsbPreset = "/YamahaExtendedControl/v1/netusb/recallPreset?zone={0}&num={1}";
 
         #region private methods
 
@@ -129,6 +137,8 @@ namespace Musiccast.Service
             };
         }
 
+        
+
         /// <summary>
         /// Gets the device status asynchronous.
         /// </summary>
@@ -142,6 +152,59 @@ namespace Musiccast.Service
                 AddClientHeaders(client);
                 var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Status, zoneName)));
                 return JsonConvert.DeserializeObject<GetStatusResponse>(result);
+            }
+        }
+
+        /// <summary>
+        /// Recalls the tuner preset asynchronous.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <param name="zoneName">Name of the zone.</param>
+        /// <param name="band">The band.</param>
+        /// <param name="number">The number.</param>
+        /// <returns></returns>
+        public async Task<bool> RecallTunerPresetAsync(Uri baseUri, string zoneName, string band, int number)
+        {
+            using (var client = new HttpClient())
+            {
+                AddClientHeaders(client);
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(RecallTunerPreset, zoneName, band, number)));
+                return result != null && JsonConvert.DeserializeObject<SetDevicePropertyResponse>(result).response_code == 0;
+            }
+        }
+
+        /// <summary>
+        /// Recalls the usb preset asynchronous.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <param name="zoneName">Name of the zone.</param>
+        /// <param name="band">The band.</param>
+        /// <param name="number">The number.</param>
+        /// <returns></returns>
+        public async Task<bool> RecallUsbPresetAsync(Uri baseUri, string zoneName, int number)
+        {
+            using (var client = new HttpClient())
+            {
+                AddClientHeaders(client);
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(RecallUsbPreset, zoneName, number)));
+                return result != null && JsonConvert.DeserializeObject<SetDevicePropertyResponse>(result).response_code == 0;
+            }
+        }
+
+        /// <summary>
+        /// Changes the device input asynchronous.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <param name="zoneName">Name of the zone.</param>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
+        public async Task<bool> ChangeDeviceInputAsync(Uri baseUri, string zoneName, string id)
+        {
+            using (var client = new HttpClient())
+            {
+                AddClientHeaders(client);
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Status, zoneName)));
+                return result != null && JsonConvert.DeserializeObject<SetDevicePropertyResponse>(result).response_code == 0;
             }
         }
 
