@@ -1,13 +1,7 @@
 ﻿using Rssdp;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -19,6 +13,11 @@ namespace Musiccast.Service
     {
         public event EventHandler<DLNADescription> DeviceFound;
 
+        /// <summary>
+        /// Scans the network asynchronous.
+        /// </summary>
+        /// <param name="token">The token.</param>
+        /// <returns></returns>
         public async Task ScanNetworkAsync(CancellationToken token)
         {
             // This code goes in a method somewhere.
@@ -50,12 +49,22 @@ namespace Musiccast.Service
             }
         }
 
+        /// <summary>
+        /// Handles the DeviceAvailable event of the DeviceLocator control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="DeviceAvailableEventArgs"/> instance containing the event data.</param>
         private void DeviceLocator_DeviceAvailable(object sender, DeviceAvailableEventArgs e)
         {
             if (!e.IsNewlyDiscovered)
                 Debug.WriteLine("DEVICE EVENT --> " + e.DiscoveredDevice.NotificationType + ": " + e.DiscoveredDevice.DescriptionLocation);
         }
 
+        /// <summary>
+        /// Renders the device asynchronous.
+        /// </summary>
+        /// <param name="location">The location.</param>
+        /// <returns></returns>
         private async Task<DLNADescription> RenderDeviceAsync(string location)
         {
             try

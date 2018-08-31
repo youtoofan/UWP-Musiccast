@@ -118,7 +118,11 @@ namespace App4.ViewModels
             this.Device = e.Parameter as Device;
 
             if (Device == null)
+            {
+                this.InputList.Clear();
+                this.FavoritesList.Clear();
                 return;
+            }
 
             this.Device.PowerToggled += Device_PowerToggledAsync;
             this.Device.VolumeChanged += Device_VolumeChanged;
@@ -133,10 +137,13 @@ namespace App4.ViewModels
         /// <param name="e">The e.</param>
         private async void Device_VolumeChanged(object sender, Device e)
         {
+            if (e == null)
+                return;
+
             if (service == null)
                 service = new MusicCastService();
 
-            await service.AdjustDeviceVolume(new Uri(Device.BaseUri), Device.Zone, e.Volume);
+            await service.AdjustDeviceVolume(new Uri(e.BaseUri), e.Zone, e.Volume);
         }
 
         /// <summary>
@@ -146,10 +153,13 @@ namespace App4.ViewModels
         /// <param name="e">The e.</param>
         private async void Device_PowerToggledAsync(object sender, Device e)
         {
+            if (e == null)
+                return;
+
             if (service == null)
                 service = new MusicCastService();
 
-            await service.TogglePowerAsync(new Uri(Device.BaseUri), Device.Zone);
+            await service.TogglePowerAsync(new Uri(e.BaseUri), e.Zone);
             await RefreshDeviceAsync();
         }
 
