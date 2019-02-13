@@ -175,12 +175,18 @@ namespace App4.ViewModels
             if (service == null)
                 service = new MusicCastService();
 
-            foreach (var e in Devices.AsParallel())
+            for (int i = Devices.Count; i > 0 ; i--)
             {
+                Device e = Devices[i-1];
                 if (e == null || e.BaseUri == null)
                     continue;
 
                 var updatedDevice = await service.RefreshDeviceAsync(e.Id, new Uri(e.BaseUri), e.Zone);
+                if (updatedDevice == null)
+                {
+                    Devices.RemoveAt(i - 1);
+                    continue;
+                }
 
                 await DispatcherHelper.RunAsync(() =>
                 {

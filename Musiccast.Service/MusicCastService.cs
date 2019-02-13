@@ -393,6 +393,12 @@ namespace Musiccast.Service
                     temp.NowPlayingInformation = tuner.NowPlayingSummary;
                 }
 
+                if(status.input == Inputs.mc_link)
+                {
+                    var tuner = await this.GetNetRadioInfoAsync(baseUri);
+                    temp.NowPlayingInformation = tuner.NowPlayingSummary;
+                }
+
                 return temp;
             }
             catch (Exception)
