@@ -90,19 +90,19 @@ namespace Musiccast.Service
                 return;
 
             var baseUri = new Uri(device.X_device.X_URLBase);
-            var info = await this.GetDeviceInfo(baseUri);
+            var info = await this.GetDeviceInfo(baseUri).ConfigureAwait(false);
 
-            var location = await this.GetDeviceLocationInfoAsync(baseUri);
+            var location = await this.GetDeviceLocationInfoAsync(baseUri).ConfigureAwait(false);
 
             foreach (var zone in location.zone_list.ValidZones)
             {
-                var status = await this.GetDeviceStatusAsync(baseUri, zone);
-                var friendlyName = await this.GetDeviceZoneFriendlyNameAsync(baseUri, zone);
+                var status = await this.GetDeviceStatusAsync(baseUri, zone).ConfigureAwait(false);
+                var friendlyName = await this.GetDeviceZoneFriendlyNameAsync(baseUri, zone).ConfigureAwait(false);
                 var convertedModel = ConvertApiDeviceToDevice(device.X_device.X_URLBase, zone, friendlyName.text, device, status, info);
 
                 if(status.input == Inputs.tuner)
                 {
-                    var tuner = await this.GetTunerPlayInfoAsync(baseUri);
+                    var tuner = await this.GetTunerPlayInfoAsync(baseUri).ConfigureAwait(false);
                     convertedModel.NowPlayingInformation = tuner.NowPlayingSummary;
                 }
 
@@ -150,7 +150,7 @@ namespace Musiccast.Service
             using (HttpClient client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Status, zoneName)));
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Status, zoneName))).ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<GetStatusResponse>(result);
             }
         }
@@ -168,7 +168,7 @@ namespace Musiccast.Service
             using (var client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(RecallTunerPreset, zoneName, band, number)));
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(RecallTunerPreset, zoneName, band, number))).ConfigureAwait(false);
                 return result != null && JsonConvert.DeserializeObject<SetDevicePropertyResponse>(result).response_code == 0;
             }
         }
@@ -186,7 +186,7 @@ namespace Musiccast.Service
             using (var client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(RecallUsbPreset, zoneName, number)));
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(RecallUsbPreset, zoneName, number))).ConfigureAwait(false);
                 return result != null && JsonConvert.DeserializeObject<SetDevicePropertyResponse>(result).response_code == 0;
             }
         }
@@ -203,7 +203,7 @@ namespace Musiccast.Service
             using (var client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Status, zoneName)));
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Status, zoneName))).ConfigureAwait(false);
                 return result != null && JsonConvert.DeserializeObject<SetDevicePropertyResponse>(result).response_code == 0;
             }
         }
@@ -219,7 +219,7 @@ namespace Musiccast.Service
             using (HttpClient client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Names, zoneName)));
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Names, zoneName))).ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<GetNameTextResponse>(result);
             }
         }
@@ -234,7 +234,7 @@ namespace Musiccast.Service
             using (HttpClient client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, Info));
+                var result = await client.GetStringAsync(new Uri(baseUri, Info)).ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<GetDeviceInfoResponse>(result);
             }
         }
@@ -249,7 +249,7 @@ namespace Musiccast.Service
             using (HttpClient client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, Features));
+                var result = await client.GetStringAsync(new Uri(baseUri, Features)).ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<GetFeaturesResponse>(result);
             }
         }
@@ -265,7 +265,7 @@ namespace Musiccast.Service
             using (HttpClient client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(TunerPresets, band)));
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(TunerPresets, band))).ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<GetTunerPresetInfo>(result);
             }
         }
@@ -280,7 +280,7 @@ namespace Musiccast.Service
             using (HttpClient client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, NetUsbPresets));
+                var result = await client.GetStringAsync(new Uri(baseUri, NetUsbPresets)).ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<GetNetUsbPresetInfo>(result);
             }
         }
@@ -295,7 +295,7 @@ namespace Musiccast.Service
             using (HttpClient client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, LocationInfo));
+                var result = await client.GetStringAsync(new Uri(baseUri, LocationInfo)).ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<GetLocationInfoResponse>(result);
             }
         }
@@ -310,7 +310,7 @@ namespace Musiccast.Service
             using (HttpClient client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, TunerPlayInfo));
+                var result = await client.GetStringAsync(new Uri(baseUri, TunerPlayInfo)).ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<GetTunerPlayInfoResponse>(result);
             }
         }
@@ -325,7 +325,7 @@ namespace Musiccast.Service
             using (HttpClient client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, NetRadioPlayInfo));
+                var result = await client.GetStringAsync(new Uri(baseUri, NetRadioPlayInfo)).ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<GetNetUsbPlayInfoResponse>(result);
             }
         }
@@ -355,8 +355,8 @@ namespace Musiccast.Service
         public async Task LoadRoomsAsync()
         {
             var service = new DLNADiscovery();
-            service.DeviceFound += async (s, e) => { await DeviceFoundAsync(s, e); };
-            await service.ScanNetworkAsync(CancellationToken.None);
+            service.DeviceFound += async (s, e) => { await DeviceFoundAsync(s, e).ConfigureAwait(false); };
+            await service.ScanNetworkAsync(CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -370,7 +370,7 @@ namespace Musiccast.Service
         {
             try
             {
-                var status = await this.GetDeviceStatusAsync(baseUri, zone);
+                var status = await this.GetDeviceStatusAsync(baseUri, zone).ConfigureAwait(false);
 
                 var temp = new MusicCastDevice()
                 {
@@ -383,19 +383,19 @@ namespace Musiccast.Service
 
                 if (status.input == Inputs.tuner)
                 {
-                    var tuner = await this.GetTunerPlayInfoAsync(baseUri);
+                    var tuner = await this.GetTunerPlayInfoAsync(baseUri).ConfigureAwait(false);
                     temp.NowPlayingInformation = tuner.NowPlayingSummary;
                 }
 
                 if (status.input == Inputs.net_radio)
                 {
-                    var tuner = await this.GetNetRadioInfoAsync(baseUri);
+                    var tuner = await this.GetNetRadioInfoAsync(baseUri).ConfigureAwait(false);
                     temp.NowPlayingInformation = tuner.NowPlayingSummary;
                 }
 
                 if(status.input == Inputs.mc_link)
                 {
-                    var tuner = await this.GetNetRadioInfoAsync(baseUri);
+                    var tuner = await this.GetNetRadioInfoAsync(baseUri).ConfigureAwait(false);
                     temp.NowPlayingInformation = tuner.NowPlayingSummary;
                 }
 
@@ -418,7 +418,7 @@ namespace Musiccast.Service
             using (HttpClient client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(TogglePower, zoneName)));
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(TogglePower, zoneName))).ConfigureAwait(false);
                 await Task.Delay(1000);
             }
         }
@@ -435,7 +435,7 @@ namespace Musiccast.Service
             using (HttpClient client = new HttpClient())
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(SetVolume, zoneName, volume)));
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(SetVolume, zoneName, volume))).ConfigureAwait(false);
             }
         }
 

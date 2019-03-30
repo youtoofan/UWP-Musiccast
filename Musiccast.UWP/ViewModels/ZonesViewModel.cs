@@ -66,7 +66,7 @@ namespace App4.ViewModels
         {
             get
             {
-                return new RelayCommand(async () => { await FindNewDevices(); });
+                return new RelayCommand(async () => { await FindNewDevices().ConfigureAwait(false); });
             }
         }
 
@@ -91,7 +91,7 @@ namespace App4.ViewModels
         {
             get
             {
-                return new RelayCommand(async () => { await CancelFindNewDevices(); });
+                return new RelayCommand(async () => { await CancelFindNewDevices().ConfigureAwait(false); });
             }
         }
 
@@ -131,7 +131,7 @@ namespace App4.ViewModels
             if (existingDevice == null)
                 return;
 
-            var updatedDevice = await service.RefreshDeviceAsync(existingDevice.Id, new Uri(existingDevice.BaseUri), existingDevice.Zone);
+            var updatedDevice = await service.RefreshDeviceAsync(existingDevice.Id, new Uri(existingDevice.BaseUri), existingDevice.Zone).ConfigureAwait(false);
 
             await DispatcherHelper.RunAsync(() =>
             {
@@ -181,7 +181,7 @@ namespace App4.ViewModels
                 if (e == null || e.BaseUri == null)
                     continue;
 
-                var updatedDevice = await service.RefreshDeviceAsync(e.Id, new Uri(e.BaseUri), e.Zone);
+                var updatedDevice = await service.RefreshDeviceAsync(e.Id, new Uri(e.BaseUri), e.Zone).ConfigureAwait(false);
                 if (updatedDevice == null)
                 {
                     Devices.RemoveAt(i - 1);
@@ -226,7 +226,7 @@ namespace App4.ViewModels
         {
             Devices.Clear();
 
-            var temp = await LoadDevicesFromStorageAsync();
+            var temp = await LoadDevicesFromStorageAsync().ConfigureAwait(false);
             foreach (var item in temp)
             {
                 if (temp != null)
@@ -235,9 +235,9 @@ namespace App4.ViewModels
                 }
             }
 
-            await RefreshDevicesAsync(null);
+            await RefreshDevicesAsync(null).ConfigureAwait(false);
 
-            await SaveDevicesInStorageAsync(Devices.ToList());
+            await SaveDevicesInStorageAsync(Devices.ToList()).ConfigureAwait(false);
 
             await ThreadPool.RunAsync((state) =>
             {
@@ -287,8 +287,8 @@ namespace App4.ViewModels
             if (service == null)
                 service = new MusicCastService();
 
-            await service.TogglePowerAsync(new Uri(e.BaseUri), e.Zone);
-            await RefreshDevicesAsync(null);
+            await service.TogglePowerAsync(new Uri(e.BaseUri), e.Zone).ConfigureAwait(false);
+            await RefreshDevicesAsync(null).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace App4.ViewModels
                 IsLoading = true;
                 service = new MusicCastService();
                 service.DeviceFound += Service_DeviceFoundAsync;
-                await service.LoadRoomsAsync();
+                await service.LoadRoomsAsync().ConfigureAwait(false);
             });
         }
 
@@ -346,7 +346,7 @@ namespace App4.ViewModels
                     BackGround = new SolidColorBrush(Colors.LightGray)
                 });
             });
-            await SaveDevicesInStorageAsync(Devices.ToList());
+            await SaveDevicesInStorageAsync(Devices.ToList()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -355,7 +355,7 @@ namespace App4.ViewModels
         /// <returns></returns>
         private static async Task<List<Device>> LoadDevicesFromStorageAsync()
         {
-            var devices = await ApplicationData.Current.LocalSettings.ReadAsync<List<Device>>(DevicesKey);
+            var devices = await ApplicationData.Current.LocalSettings.ReadAsync<List<Device>>(DevicesKey).ConfigureAwait(false);
             return devices ?? new List<Device>();
         }
 
@@ -366,7 +366,7 @@ namespace App4.ViewModels
         /// <returns></returns>
         private static async Task SaveDevicesInStorageAsync(List<Device> devices)
         {
-            await ApplicationData.Current.LocalSettings.SaveAsync(DevicesKey, devices);
+            await ApplicationData.Current.LocalSettings.SaveAsync(DevicesKey, devices).ConfigureAwait(false);
         }
     }
 }

@@ -34,11 +34,11 @@ namespace Musiccast.Service
                         Debug.WriteLine("Found " + foundDevice.Usn + " at " + foundDevice.DescriptionLocation.ToString());
 
                         // Can retrieve the full device description easily though.
-                        var fullDevice = await foundDevice.GetDeviceInfo();
+                        var fullDevice = await foundDevice.GetDeviceInfo().ConfigureAwait(false);
                         Debug.WriteLine(fullDevice.FriendlyName);
                         Debug.WriteLine("");
 
-                        var result = await RenderDeviceAsync(foundDevice.DescriptionLocation.ToString());
+                        var result = await RenderDeviceAsync(foundDevice.DescriptionLocation.ToString()).ConfigureAwait(false);
                         if (result != null && DeviceFound != null)
                             DeviceFound(this, result);
                     }
@@ -73,7 +73,7 @@ namespace Musiccast.Service
 
                 using (HttpClient client = new HttpClient())
                 {
-                    using (var stream = await client.GetStreamAsync(location))
+                    using (var stream = await client.GetStreamAsync(location).ConfigureAwait(false))
                     {
                         using (XmlReader reader = XmlReader.Create(stream))
                         {

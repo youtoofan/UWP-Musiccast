@@ -45,7 +45,7 @@ namespace App4.ViewModels
                         async (param) =>
                         {
                             ElementTheme = param;
-                            await ThemeSelectorService.SetThemeAsync(param);
+                            await ThemeSelectorService.SetThemeAsync(param).ConfigureAwait(false);
                         });
                 }
 

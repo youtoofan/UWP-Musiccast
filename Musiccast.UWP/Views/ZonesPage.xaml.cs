@@ -1,7 +1,7 @@
 ﻿using System;
 
 using App4.ViewModels;
-
+using GalaSoft.MvvmLight.Threading;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 
@@ -21,7 +21,10 @@ namespace App4.Views
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
-            await ViewModel.InitAsync();
+            await DispatcherHelper.RunAsync(async () =>
+            {
+                await ViewModel.InitAsync();
+            });
             base.OnNavigatedTo(e);
         }
 

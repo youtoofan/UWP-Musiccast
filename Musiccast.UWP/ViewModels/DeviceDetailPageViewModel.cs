@@ -143,7 +143,7 @@ namespace App4.ViewModels
             if (service == null)
                 service = new MusicCastService();
 
-            await service.AdjustDeviceVolume(new Uri(e.BaseUri), e.Zone, e.Volume);
+            await service.AdjustDeviceVolume(new Uri(e.BaseUri), e.Zone, e.Volume).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -159,8 +159,8 @@ namespace App4.ViewModels
             if (service == null)
                 service = new MusicCastService();
 
-            await service.TogglePowerAsync(new Uri(e.BaseUri), e.Zone);
-            await RefreshDeviceAsync();
+            await service.TogglePowerAsync(new Uri(e.BaseUri), e.Zone).ConfigureAwait(false);
+            await RefreshDeviceAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -173,10 +173,10 @@ namespace App4.ViewModels
                 service = new MusicCastService();
 
             if (item.InputType == Musiccast.Model.Inputs.tuner)
-                await service.RecallTunerPresetAsync(new Uri(Device.BaseUri), Device.Zone, item.Band, item.Index);
+                await service.RecallTunerPresetAsync(new Uri(Device.BaseUri), Device.Zone, item.Band, item.Index).ConfigureAwait(false);
 
             if (item.InputType == Musiccast.Model.Inputs.usb)
-                await service.RecallUsbPresetAsync(new Uri(Device.BaseUri), Device.Zone, item.Index);
+                await service.RecallUsbPresetAsync(new Uri(Device.BaseUri), Device.Zone, item.Index).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace App4.ViewModels
             if (service == null)
                 service = new MusicCastService();
 
-            await service.ChangeDeviceInputAsync(new Uri(Device.BaseUri), Device.Zone, item.Id);
+            await service.ChangeDeviceInputAsync(new Uri(Device.BaseUri), Device.Zone, item.Id).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -200,11 +200,25 @@ namespace App4.ViewModels
             if (service == null)
                 service = new MusicCastService();
 
-            var updatedDevice = await service.RefreshDeviceAsync(Device.Id, new Uri(Device.BaseUri), Device.Zone);
-            var features = await service.GetFeatures(new Uri(Device.BaseUri));
-            var tunerPresetsDAB = await service.GetTunerPresets(new Uri(Device.BaseUri), "dab");
-            var tunerPresetsFM = await service.GetTunerPresets(new Uri(Device.BaseUri), "fm");
-            var usbPresets = await service.GetUsbPresets(new Uri(Device.BaseUri));
+            var refresh = service.RefreshDeviceAsync(Device.Id, new Uri(Device.BaseUri), Device.Zone);
+            var feat = service.GetFeatures(new Uri(Device.BaseUri));
+            var dab = service.GetTunerPresets(new Uri(Device.BaseUri), "dab");
+            var fm = service.GetTunerPresets(new Uri(Device.BaseUri), "fm");
+            var usb = service.GetUsbPresets(new Uri(Device.BaseUri));
+
+            await Task.WhenAll(new Task[]{
+                refresh,
+                feat,
+                dab,
+                fm,
+                usb
+            }).ConfigureAwait(false);
+
+            var updatedDevice = await refresh;
+            var features = await feat;
+            var tunerPresetsDAB = await dab;
+            var tunerPresetsFM = await fm;
+            var usbPresets = await usb;
 
             await DispatcherHelper.RunAsync(() =>
             {
