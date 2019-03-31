@@ -5,7 +5,7 @@ using System.Windows.Input;
 using App4.Services;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
-using GalaSoft.MvvmLight.Threading;
+using Microsoft.Toolkit.Uwp.Helpers;
 using Musiccast.Helpers;
 using Musiccast.Models;
 using Musiccast.Service;
@@ -220,7 +220,7 @@ namespace App4.ViewModels
             var tunerPresetsFM = await fm;
             var usbPresets = await usb;
 
-            await DispatcherHelper.RunAsync(() =>
+            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
             {
                 this.InputList.Clear();
                 this.FavoritesList.Clear();

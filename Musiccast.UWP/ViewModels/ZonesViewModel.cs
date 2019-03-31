@@ -12,8 +12,8 @@ using App4.Helpers;
 using App4.Services;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
-using GalaSoft.MvvmLight.Threading;
 using GalaSoft.MvvmLight.Views;
+using Microsoft.Toolkit.Uwp.Helpers;
 using Musiccast.Helpers;
 using Musiccast.Model;
 using Musiccast.Models;
@@ -133,7 +133,7 @@ namespace App4.ViewModels
 
             var updatedDevice = await service.RefreshDeviceAsync(existingDevice.Id, new Uri(existingDevice.BaseUri), existingDevice.Zone).ConfigureAwait(false);
 
-            await DispatcherHelper.RunAsync(() =>
+            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
             {
                 try
                 {
@@ -188,7 +188,7 @@ namespace App4.ViewModels
                     continue;
                 }
 
-                await DispatcherHelper.RunAsync(() =>
+                await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
                 {
                     try
                     {
@@ -224,20 +224,23 @@ namespace App4.ViewModels
         /// <returns></returns>
         public async Task InitAsync()
         {
-            Devices.Clear();
-
             var temp = await LoadDevicesFromStorageAsync().ConfigureAwait(false);
-            foreach (var item in temp)
+
+            await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
             {
-                if (temp != null)
+                Devices.Clear();
+
+                foreach (var item in temp)
                 {
-                    Devices.Add(item);
+                    if (temp != null)
+                    {
+                        Devices.Add(item);
+                    }
                 }
-            }
 
-            await RefreshDevicesAsync(null).ConfigureAwait(false);
-
-            await SaveDevicesInStorageAsync(Devices.ToList()).ConfigureAwait(false);
+                await RefreshDevicesAsync(null).ConfigureAwait(false);
+                await SaveDevicesInStorageAsync(Devices.ToList()).ConfigureAwait(false);
+            });
 
             await ThreadPool.RunAsync((state) =>
             {
@@ -246,6 +249,27 @@ namespace App4.ViewModels
                     UDPListener = new UDPListener();
                     UDPListener.DeviceNotificationRecieved += UDPListener_DeviceNotificationRecievedAsync;
                     UDPListener.StartListener(41100);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Destroys the asynchronous.
+        /// </summary>
+        /// <returns></returns>
+        public async Task DestroyAsync()
+        {
+            await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
+            {
+                Devices.Clear();
+            });
+
+            await ThreadPool.RunAsync((state) =>
+            {
+                if (UDPListener != null)
+                {
+                    UDPListener.DeviceNotificationRecieved -= UDPListener_DeviceNotificationRecievedAsync;
+                    UDPListener.Dispose();
                 }
             });
         }
@@ -297,7 +321,7 @@ namespace App4.ViewModels
         /// <returns></returns>
         public async Task FindNewDevices()
         {
-            await DispatcherHelper.RunAsync(async () =>
+            await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
             {
                 IsLoading = true;
                 service = new MusicCastService();
@@ -312,7 +336,7 @@ namespace App4.ViewModels
         /// <returns></returns>
         private async Task CancelFindNewDevices()
         {
-            await DispatcherHelper.RunAsync(() =>
+            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
             {
                 IsLoading = false;
             });
@@ -325,7 +349,7 @@ namespace App4.ViewModels
         /// <param name="device">The device.</param>
         private async void Service_DeviceFoundAsync(object sender, MusicCastDevice device)
         {
-            await DispatcherHelper.RunAsync(() =>
+            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
             {
                 IsLoading = false;
 
@@ -368,6 +392,8 @@ namespace App4.ViewModels
         {
             await ApplicationData.Current.LocalSettings.SaveAsync(DevicesKey, devices).ConfigureAwait(false);
         }
+
+        
     }
 }
 
