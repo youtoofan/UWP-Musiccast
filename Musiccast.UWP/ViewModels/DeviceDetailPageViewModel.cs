@@ -242,8 +242,11 @@ namespace App4.ViewModels
                 {
                     Musiccast.Model.TunerPresetInfo item = tunerPresetsDAB.preset_info[i];
 
-                    if (string.IsNullOrEmpty(item.text))
+                    if (item.number <= 0)
                         continue;
+
+                    if (string.IsNullOrEmpty(item.text))
+                        item.text = item.number.ToString();
 
                     this.FavoritesList.Add(new Preset()
                     {
