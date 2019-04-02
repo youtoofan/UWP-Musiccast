@@ -9,6 +9,7 @@ using Microsoft.Toolkit.Uwp.Helpers;
 using Musiccast.Helpers;
 using Musiccast.Models;
 using Musiccast.Service;
+using Windows.UI.Xaml.Navigation;
 
 namespace App4.ViewModels
 {
@@ -85,8 +86,6 @@ namespace App4.ViewModels
             }
         }
 
-        
-
         public ICommand InputClickedCommand
         {
             get
@@ -113,7 +112,7 @@ namespace App4.ViewModels
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="Windows.UI.Xaml.Navigation.NavigationEventArgs"/> instance containing the event data.</param>
-        private async void NavigationService_NavigatedAsync(object sender, Windows.UI.Xaml.Navigation.NavigationEventArgs e)
+        private async void NavigationService_NavigatedAsync(object sender, NavigationEventArgs e)
         {
             this.Device = e.Parameter as Device;
 

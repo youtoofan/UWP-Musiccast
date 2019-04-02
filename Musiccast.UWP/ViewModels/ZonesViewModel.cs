@@ -192,19 +192,19 @@ namespace App4.ViewModels
                 {
                     try
                     {
-                            e.Power = updatedDevice.Power;
-                            e.Input = updatedDevice.Input.ToString();
-                            e.SubTitle = updatedDevice.NowPlayingInformation;
-                            e.BackGround = new SolidColorBrush(Colors.OrangeRed);
-                            e.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
-                            e.ImageSize = e.ImageSize;
+                        e.Power = updatedDevice.Power;
+                        e.Input = updatedDevice.Input.ToString();
+                        e.SubTitle = updatedDevice.NowPlayingInformation;
+                        e.BackGround = new SolidColorBrush(Colors.OrangeRed);
+                        e.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
+                        e.ImageSize = e.ImageSize;
 
-                            if (string.IsNullOrEmpty(e.FriendlyName))
-                                e.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
+                        if (string.IsNullOrEmpty(e.FriendlyName))
+                            e.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
 
-                            e.PowerToggled -= async (s, args) => { await Item_PowerToggledAsync(s, args); };
-                            e.PowerToggled += async (s, args) => { await Item_PowerToggledAsync(s, args); };
-                    
+                        e.PowerToggled -= async (s, args) => { await Item_PowerToggledAsync(s, args); };
+                        e.PowerToggled += async (s, args) => { await Item_PowerToggledAsync(s, args); };
+
                     }
                     catch (Exception ex)
                     {
@@ -259,7 +259,7 @@ namespace App4.ViewModels
         /// <returns></returns>
         public async Task DestroyAsync()
         {
-            await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
+            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
             {
                 Devices.Clear();
             });

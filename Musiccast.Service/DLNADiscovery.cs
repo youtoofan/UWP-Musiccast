@@ -23,9 +23,12 @@ namespace Musiccast.Service
             // This code goes in a method somewhere.
             using (var deviceLocator = new SsdpDeviceLocator())
             {
+                //deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailable;
+                //deviceLocator.StartListeningForNotifications();
+
                 await Task.Factory.StartNew(async () =>
                 {
-                    var foundDevices = await deviceLocator.SearchAsync(); // Can pass search arguments here (device type, uuid). No arguments means all devices.
+                    var foundDevices = await deviceLocator.SearchAsync().ConfigureAwait(false); // Can pass search arguments here (device type, uuid). No arguments means all devices.
 
                     foreach (var foundDevice in foundDevices)
                     {
@@ -43,9 +46,6 @@ namespace Musiccast.Service
                             DeviceFound(this, result);
                     }
                 });
-
-                deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailable;
-                deviceLocator.StartListeningForNotifications();
             }
         }
 
