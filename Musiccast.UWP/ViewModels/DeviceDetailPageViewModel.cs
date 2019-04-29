@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using App4.Services;
+using App4.Views;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using Microsoft.Toolkit.Uwp.Helpers;
@@ -104,6 +105,7 @@ namespace App4.ViewModels
             this.FavoritesList = new ObservableCollection<Preset>();
 
             this.navigationService = navigationService;
+            this.service = App.ServiceProvider.GetService(typeof(MusicCastService)) as MusicCastService;
             navigationService.Navigated += NavigationService_NavigatedAsync;
         }
 
@@ -114,6 +116,17 @@ namespace App4.ViewModels
         /// <param name="e">The <see cref="Windows.UI.Xaml.Navigation.NavigationEventArgs"/> instance containing the event data.</param>
         private async void NavigationService_NavigatedAsync(object sender, NavigationEventArgs e)
         {
+            if(e.SourcePageType != typeof(DeviceDetailPagePage))
+            {
+                if (Device != null)
+                {
+                    this.Device.PowerToggled -= Device_PowerToggledAsync;
+                    this.Device.VolumeChanged -= Device_VolumeChanged;
+                }
+
+                return;
+            }
+
             this.Device = e.Parameter as Device;
 
             if (Device == null)
@@ -139,9 +152,6 @@ namespace App4.ViewModels
             if (e == null)
                 return;
 
-            if (service == null)
-                service = new MusicCastService();
-
             await service.AdjustDeviceVolume(new Uri(e.BaseUri), e.Zone, e.Volume).ConfigureAwait(false);
         }
 
@@ -155,9 +165,6 @@ namespace App4.ViewModels
             if (e == null)
                 return;
 
-            if (service == null)
-                service = new MusicCastService();
-
             await service.TogglePowerAsync(new Uri(e.BaseUri), e.Zone).ConfigureAwait(false);
             await RefreshDeviceAsync().ConfigureAwait(false);
         }
@@ -168,8 +175,6 @@ namespace App4.ViewModels
         /// <param name="item">The item.</param>
         private async void ChangeDevicePreset(Preset item)
         {
-            if (service == null)
-                service = new MusicCastService();
 
             if (item.InputType == Musiccast.Model.Inputs.tuner)
                 await service.RecallTunerPresetAsync(new Uri(Device.BaseUri), Device.Zone, item.Band, item.Index).ConfigureAwait(false);
@@ -184,20 +189,20 @@ namespace App4.ViewModels
         /// <param name="item">The item.</param>
         private async void ChangeDeviceInput(Input item)
         {
-            if (service == null)
-                service = new MusicCastService();
-
             await service.ChangeDeviceInputAsync(new Uri(Device.BaseUri), Device.Zone, item.Id).ConfigureAwait(false);
         }
-
+        
         /// <summary>
         /// Refreshes the device asynchronous.
         /// </summary>
         /// <returns></returns>
         private async Task RefreshDeviceAsync()
         {
-            if (service == null)
-                service = new MusicCastService();
+            if (Device == null)
+                await Task.Delay(3000);
+
+            if (Device == null)
+                return;
 
             var refresh = service.RefreshDeviceAsync(Device.Id, new Uri(Device.BaseUri), Device.Zone);
             var feat = service.GetFeatures(new Uri(Device.BaseUri));

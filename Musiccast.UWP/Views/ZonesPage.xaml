@@ -7,6 +7,10 @@
     xmlns:helpers="using:Musiccast.Helpers"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     xmlns:local="using:Musiccast.Models"
+    xmlns:winui="using:Microsoft.UI.Xaml.Controls"
+    xmlns:lottie="using:Microsoft.Toolkit.Uwp.UI.Lottie"
+    xmlns:helpers1="using:App4.Helpers"
+    xmlns:animatedvisuals="using:AnimatedVisuals"
     Style="{StaticResource PageStyle}"
     DataContext="{Binding ZonesViewModel, Source={StaticResource Locator}}"
     mc:Ignorable="d">
@@ -39,8 +43,16 @@
                     <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind IsOnString, Mode=OneWay}"/>
                 </ToggleButton>
                 <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="2">
-                    <Border BorderThickness="1,1,1,1">
-                        <SymbolIcon VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Symbol="MusicInfo"></SymbolIcon>
+                    <Border BorderThickness="1,1,1,1" Width="30" Height="30">
+                        <winui:AnimatedVisualPlayer x:Name="LottiePlayer" AutoPlay="{Binding IsOn}">
+                            <!--LottieVisualSource with JSON UriSource-->
+                            <animatedvisuals:LottieAnim/>
+                            <winui:AnimatedVisualPlayer.FallbackContent>
+                                <DataTemplate>
+                                    <SymbolIcon VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Symbol="MusicInfo"></SymbolIcon>
+                                </DataTemplate>
+                            </winui:AnimatedVisualPlayer.FallbackContent>
+                        </winui:AnimatedVisualPlayer>
                     </Border>
                     <StackPanel Orientation="Vertical" Padding="{StaticResource TextControlThemePadding}">
                         <TextBlock Text="{x:Bind Input, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Top" HorizontalAlignment="Left" />

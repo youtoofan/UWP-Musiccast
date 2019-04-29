@@ -1,11 +1,12 @@
 ﻿using System;
-
+using System.Net.Http;
 using App4.Services;
 using App4.Views;
 
 using CommonServiceLocator;
 
 using GalaSoft.MvvmLight.Ioc;
+using Musiccast.Service;
 
 namespace App4.ViewModels
 {

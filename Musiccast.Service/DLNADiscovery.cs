@@ -11,7 +11,18 @@ namespace Musiccast.Service
 {
     public class DLNADiscovery
     {
+        private readonly IHttpClientFactory _httpClientFactory;
+
         public event EventHandler<DLNADescription> DeviceFound;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DLNADiscovery"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">The HTTP client factory.</param>
+        public DLNADiscovery(IHttpClientFactory httpClientFactory)
+        {
+            this._httpClientFactory = httpClientFactory;
+        }
 
         /// <summary>
         /// Scans the network asynchronous.
@@ -71,7 +82,7 @@ namespace Musiccast.Service
             {
                 var serializer = new XmlSerializer(typeof(DLNADescription));
 
-                using (HttpClient client = new HttpClient())
+                var client = _httpClientFactory.CreateClient();
                 {
                     using (var stream = await client.GetStreamAsync(location).ConfigureAwait(false))
                     {
