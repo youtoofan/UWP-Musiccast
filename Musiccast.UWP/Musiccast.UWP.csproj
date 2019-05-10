@@ -138,6 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Activation\ActivationHandler.cs" />
+    <Compile Include="Helpers\BooleanToVisibilityConverter.cs" />
     <Compile Include="Helpers\LottieAnim.cs" />
     <Compile Include="Helpers\BooleanToColorConverter.cs" />
     <Compile Include="Helpers\BooleanToOpacityConverter.cs" />

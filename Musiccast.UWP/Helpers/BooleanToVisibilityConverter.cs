@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using Windows.UI;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Media;
 
 namespace Musiccast.Helpers
 {
-    public class BooleanToOpacityConverter : IValueConverter
+    public class BooleanToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             if (value == null)
-                return 0.25;
+                return Visibility.Collapsed;
 
             var isTrue = (bool)value;
-            return isTrue ? 0.9: 0.25;
+            return isTrue ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

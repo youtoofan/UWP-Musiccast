@@ -25,8 +25,13 @@
         <helpers:BooleanToColorConverter x:Name="booleanToColorConverter"/>
         <helpers:BooleanToOpacityConverter x:Name="booleanToOpacityConverter"/>
         <helpers:ObjectToDeviceConverter x:Name="objectToDeviceConverter"/>
+        <helpers:BooleanToVisibilityConverter x:Name="booleanToVisibilityConverter"/>
+        
         <DataTemplate x:Name="ContactListViewTemplate" x:DataType="local:Device">
-            <Grid HorizontalAlignment="Stretch" Opacity="{x:Bind IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" Padding="{StaticResource FlyoutContentThemePadding}" Background="{x:Bind BackGround, Mode=OneWay}">
+            <Grid HorizontalAlignment="Stretch" Opacity="{x:Bind IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}"
+                  Style="{StaticResource GridViewItemRevealBackgroundShowsAboveContentStyle}"
+                  Padding="{StaticResource FlyoutContentThemePadding}"
+                  Background="{x:Bind BackGround, Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
@@ -44,8 +49,7 @@
                 </ToggleButton>
                 <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="2">
                     <Border BorderThickness="1,1,1,1" Width="30" Height="30">
-                        <winui:AnimatedVisualPlayer x:Name="LottiePlayer" AutoPlay="{Binding IsOn}">
-                            <!--LottieVisualSource with JSON UriSource-->
+                        <winui:AnimatedVisualPlayer x:Name="LottiePlayer" AutoPlay="True" Visibility="{x:Bind IsOn, Converter={StaticResource booleanToVisibilityConverter}}">
                             <animatedvisuals:LottieAnim/>
                             <winui:AnimatedVisualPlayer.FallbackContent>
                                 <DataTemplate>
@@ -64,7 +68,8 @@
     </Page.Resources>
     <Grid
         x:Name="ContentArea"
-        Margin="{StaticResource MediumLeftRightMargin}">
+        Background="{ThemeResource  SystemControlChromeHighAcrylicWindowMediumBrush}"
+        >
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>

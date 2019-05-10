@@ -94,6 +94,7 @@
                            HorizontalContentAlignment="Stretch"
                            VerticalContentAlignment="Bottom"
                            IsExpanded="False"
+                               Background="{ThemeResource SystemControlAcrylicWindowBrush}"
                            ExpandDirection="Up">
                 <Grid Height="400"  Opacity="{x:Bind ViewModel.Device.IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}" Padding="{StaticResource ContentDialogPadding}">
                     <Grid.RowDefinitions>
