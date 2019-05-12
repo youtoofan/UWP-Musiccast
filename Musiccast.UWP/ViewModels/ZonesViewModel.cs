@@ -141,7 +141,7 @@ namespace App4.ViewModels
                     existingDevice.Power = updatedDevice.Power;
                     existingDevice.Input = updatedDevice.Input.ToString();
                     existingDevice.SubTitle = updatedDevice.NowPlayingInformation;
-                    existingDevice.BackGround = new SolidColorBrush(Colors.OrangeRed);
+                    existingDevice.BackGround = new AcrylicBrush() { TintColor = Colors.OrangeRed, TintOpacity = 0.8 };
                     existingDevice.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
                     existingDevice.ImageSize = existingDevice.ImageSize;
 
@@ -195,7 +195,7 @@ namespace App4.ViewModels
                             e.Power = updatedDevice.Power;
                             e.Input = updatedDevice.Input.ToString();
                             e.SubTitle = updatedDevice.NowPlayingInformation;
-                            e.BackGround = new SolidColorBrush(Colors.OrangeRed);
+                            e.BackGround = new AcrylicBrush() { TintColor = Colors.OrangeRed, TintOpacity = 0.8 };
                             e.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
                             e.ImageSize = e.ImageSize;
 

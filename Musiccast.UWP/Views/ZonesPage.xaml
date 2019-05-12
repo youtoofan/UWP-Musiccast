@@ -22,13 +22,14 @@
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
         <helpers:UriToBitmapConverter x:Name="uriToBitmapConverter"/>
-        <helpers:BooleanToColorConverter x:Name="booleanToColorConverter"/>
+       
         <helpers:BooleanToOpacityConverter x:Name="booleanToOpacityConverter"/>
         <helpers:ObjectToDeviceConverter x:Name="objectToDeviceConverter"/>
         <helpers:BooleanToVisibilityConverter x:Name="booleanToVisibilityConverter"/>
         
         <DataTemplate x:Name="ContactListViewTemplate" x:DataType="local:Device">
-            <Grid HorizontalAlignment="Stretch" Opacity="{x:Bind IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}"
+            <Grid HorizontalAlignment="Stretch"
+                  Opacity="{x:Bind IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}"
                   Style="{StaticResource GridViewItemRevealBackgroundShowsAboveContentStyle}"
                   Padding="{StaticResource FlyoutContentThemePadding}"
                   Background="{x:Bind BackGround, Mode=OneWay}">
@@ -49,7 +50,7 @@
                 </ToggleButton>
                 <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="2">
                     <Border BorderThickness="1,1,1,1" Width="30" Height="30">
-                        <winui:AnimatedVisualPlayer x:Name="LottiePlayer" AutoPlay="True" Visibility="{x:Bind IsOn, Converter={StaticResource booleanToVisibilityConverter}}">
+                        <winui:AnimatedVisualPlayer x:Name="LottiePlayer" AutoPlay="True" Visibility="{x:Bind IsOn, Converter={StaticResource booleanToVisibilityConverter}, Mode=OneWay}">
                             <animatedvisuals:LottieAnim/>
                             <winui:AnimatedVisualPlayer.FallbackContent>
                                 <DataTemplate>
