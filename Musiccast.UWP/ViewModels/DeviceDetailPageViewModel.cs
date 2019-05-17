@@ -204,13 +204,16 @@ namespace App4.ViewModels
             if (Device == null)
                 return;
 
-            var refresh = service.RefreshDeviceAsync(Device.Id, new Uri(Device.BaseUri), Device.Zone);
-            var feat = service.GetFeatures(new Uri(Device.BaseUri));
-            var dab = service.GetTunerPresets(new Uri(Device.BaseUri), "dab");
-            var fm = service.GetTunerPresets(new Uri(Device.BaseUri), "fm");
-            var usb = service.GetUsbPresets(new Uri(Device.BaseUri));
+            try
+            {
 
-            await Task.WhenAll(new Task[]{
+                var refresh = service.RefreshDeviceAsync(Device.Id, new Uri(Device.BaseUri), Device.Zone);
+                var feat = service.GetFeatures(new Uri(Device.BaseUri));
+                var dab = service.GetTunerPresets(new Uri(Device.BaseUri), "dab");
+                var fm = service.GetTunerPresets(new Uri(Device.BaseUri), "fm");
+                var usb = service.GetUsbPresets(new Uri(Device.BaseUri));
+
+                await Task.WhenAll(new Task[]{
                 refresh,
                 feat,
                 dab,
@@ -218,83 +221,88 @@ namespace App4.ViewModels
                 usb
             }).ConfigureAwait(false);
 
-            var updatedDevice = await refresh;
-            var features = await feat;
-            var tunerPresetsDAB = await dab;
-            var tunerPresetsFM = await fm;
-            var usbPresets = await usb;
+                var updatedDevice = await refresh;
+                var features = await feat;
+                var tunerPresetsDAB = await dab;
+                var tunerPresetsFM = await fm;
+                var usbPresets = await usb;
 
-            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+                await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+                {
+                    this.InputList.Clear();
+                    this.FavoritesList.Clear();
+
+                    Device.Power = updatedDevice.Power;
+                    Device.Input = updatedDevice.Input.ToString();
+                    Device.SubTitle = updatedDevice.NowPlayingInformation;
+                    Device.Volume = updatedDevice.Volume;
+                    Device.MaxVolume = updatedDevice.MaxVolume;
+                    Device.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
+                    Device.ImageSize = updatedDevice.ImageSize;
+
+                    foreach (var item in features.system.input_list)
+                    {
+                        this.InputList.Add(InputToGlyphAndTitleConverter.ConvertInput(item.id));
+                    }
+
+                    for (int i = 0; i < tunerPresetsDAB.preset_info.Count; i++)
+                    {
+                        Musiccast.Model.TunerPresetInfo item = tunerPresetsDAB.preset_info[i];
+
+                        if (item.number <= 0)
+                            continue;
+
+                        if (string.IsNullOrEmpty(item.text))
+                            item.text = item.number.ToString();
+
+                        this.FavoritesList.Add(new Preset()
+                        {
+                            Band = item.band,
+                            Text = item.text,
+                            Number = item.number,
+                            Index = i + 1,
+                            InputType = Musiccast.Model.Inputs.tuner
+                        });
+                    }
+
+                    for (int i = 0; i < tunerPresetsFM.preset_info.Count; i++)
+                    {
+                        Musiccast.Model.TunerPresetInfo item = tunerPresetsFM.preset_info[i];
+
+                        if (string.IsNullOrEmpty(item.text))
+                            continue;
+
+                        this.FavoritesList.Add(new Preset()
+                        {
+                            Band = item.band,
+                            Text = item.text,
+                            Number = item.number,
+                            Index = i + 1,
+                            InputType = Musiccast.Model.Inputs.tuner
+                        });
+                    }
+
+                    for (int i = 0; i < usbPresets.preset_info.Count; i++)
+                    {
+                        Musiccast.Model.NetUsbPresetInfo item = usbPresets.preset_info[i];
+
+                        if (string.IsNullOrEmpty(item.text))
+                            continue;
+
+                        this.FavoritesList.Add(new Preset()
+                        {
+                            Band = item.input,
+                            Text = item.text,
+                            Index = i + 1,
+                            InputType = Musiccast.Model.Inputs.usb
+                        });
+                    }
+                });
+            }
+            catch (Exception)
             {
-                this.InputList.Clear();
-                this.FavoritesList.Clear();
-
-                Device.Power = updatedDevice.Power;
-                Device.Input = updatedDevice.Input.ToString();
-                Device.SubTitle = updatedDevice.NowPlayingInformation;
-                Device.Volume = updatedDevice.Volume;
-                Device.MaxVolume = updatedDevice.MaxVolume;
-                Device.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
-                Device.ImageSize = updatedDevice.ImageSize;
-
-                foreach (var item in features.system.input_list)
-                {
-                    this.InputList.Add(InputToGlyphAndTitleConverter.ConvertInput(item.id));
-                }
-
-                for (int i = 0; i < tunerPresetsDAB.preset_info.Count; i++)
-                {
-                    Musiccast.Model.TunerPresetInfo item = tunerPresetsDAB.preset_info[i];
-
-                    if (item.number <= 0)
-                        continue;
-
-                    if (string.IsNullOrEmpty(item.text))
-                        item.text = item.number.ToString();
-
-                    this.FavoritesList.Add(new Preset()
-                    {
-                        Band = item.band,
-                        Text = item.text,
-                        Number = item.number,
-                        Index = i + 1,
-                        InputType = Musiccast.Model.Inputs.tuner
-                    });
-                }
-
-                for (int i = 0; i < tunerPresetsFM.preset_info.Count; i++)
-                {
-                    Musiccast.Model.TunerPresetInfo item = tunerPresetsFM.preset_info[i];
-
-                    if (string.IsNullOrEmpty(item.text))
-                        continue;
-
-                    this.FavoritesList.Add(new Preset()
-                    {
-                        Band = item.band,
-                        Text = item.text,
-                        Number = item.number,
-                        Index = i + 1,
-                        InputType = Musiccast.Model.Inputs.tuner
-                    });
-                }
-
-                for (int i = 0; i < usbPresets.preset_info.Count; i++)
-                {
-                    Musiccast.Model.NetUsbPresetInfo item = usbPresets.preset_info[i];
-
-                    if (string.IsNullOrEmpty(item.text))
-                        continue;
-
-                    this.FavoritesList.Add(new Preset()
-                    {
-                        Band = item.input,
-                        Text = item.text,
-                        Index = i + 1,
-                        InputType = Musiccast.Model.Inputs.usb
-                    });
-                }
-            });
+                return;
+            }
         }
     }
 }

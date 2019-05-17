@@ -175,7 +175,7 @@ namespace App4.ViewModels
 
             for (int i = Devices.Count; i > 0 ; i--)
             {
-                Device e = Devices[i-1];
+                Device e = Devices.Count >= i ? Devices[i-1] : null;
                 if (e == null || e.BaseUri == null)
                     continue;
 
