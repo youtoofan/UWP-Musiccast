@@ -31,6 +31,9 @@ namespace Musiccast.Service
         /// The features
         /// </summary>
         private const string Features = "/YamahaExtendedControl/v1/system/getFeatures";
+
+        private const string NetworkStatus = "/YamahaExtendedControl/v1/system/getNetworkStatus";
+
         /// <summary>
         /// The status
         /// </summary>
@@ -101,7 +104,7 @@ namespace Musiccast.Service
 
             var baseUri = new Uri(device.X_device.X_URLBase);
             var info = await this.GetDeviceInfo(baseUri).ConfigureAwait(false);
-
+            await this.GetNetworkStatus(baseUri).ConfigureAwait(false);
             var location = await this.GetDeviceLocationInfoAsync(baseUri).ConfigureAwait(false);
 
             foreach (var zone in location.zone_list.ValidZones)
@@ -120,6 +123,8 @@ namespace Musiccast.Service
                     DeviceFound(this, convertedModel);
             }
         }
+
+        
 
         /// <summary>
         /// Converts the API device to device.
@@ -247,6 +252,19 @@ namespace Musiccast.Service
                 var result = await client.GetStringAsync(new Uri(baseUri, Info)).ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<GetDeviceInfoResponse>(result);
             }
+        }
+
+        /// <summary>
+        /// Gets the network status.
+        /// </summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <returns></returns>
+        private async Task GetNetworkStatus(Uri baseUri)
+        {
+            var client = _httpClientFactory.CreateClient();
+            AddClientHeaders(client);
+            var result = await client.GetStringAsync(new Uri(baseUri, NetworkStatus));
+            Debug.WriteLine(result);
         }
 
         /// <summary>
