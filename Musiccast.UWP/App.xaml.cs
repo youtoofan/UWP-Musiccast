@@ -52,6 +52,5 @@ namespace App4
         {
             return new ActivationService(this, typeof(ViewModels.ZonesViewModel));
         }
-
     }
 }

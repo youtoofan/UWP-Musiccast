@@ -8,7 +8,7 @@ using Windows.UI.Xaml.Media;
 
 namespace Musiccast.Models
 {
-    public class Device : ViewModelBase
+    public class Device : ObservableObject
     {
         private string _power;
         private string _input;

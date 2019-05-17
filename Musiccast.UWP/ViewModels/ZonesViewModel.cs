@@ -114,11 +114,6 @@ namespace App4.ViewModels
             Devices = new ObservableCollection<Device>();
             this.navigationService = navigationService;
             this.service = App.ServiceProvider.GetService(typeof(MusicCastService)) as MusicCastService;
-
-            if (IsInDesignMode)
-            {
-                Devices.Add(new Device() { FriendlyName = "Test" });
-            }
         }
 
         /// <summary>
@@ -170,12 +165,12 @@ namespace App4.ViewModels
         /// <returns></returns>
         private async Task RefreshDevicesAsync(object state)
         {
-            if (Devices == null || Devices.Count <= 0)
+            if (!Devices.Any())
                 return;
 
-            for (int i = Devices.Count; i > 0 ; i--)
+            for (int i = Devices.Count -1; i >= 0 ; i--)
             {
-                Device e = Devices.Count >= i ? Devices[i-1] : null;
+                Device e = Devices.Count >= i ? Devices[i] : null;
                 if (e == null || e.BaseUri == null)
                     continue;
 
@@ -188,7 +183,7 @@ namespace App4.ViewModels
                         if (updatedDevice == null)
                         {
                             if(Devices.Any() && Devices.Count > i)
-                            Devices.RemoveAt(i - 1);
+                                Devices.RemoveAt(i);
                         }
                         else
                         {
@@ -226,15 +221,7 @@ namespace App4.ViewModels
         {
             var temp = await LoadDevicesFromStorageAsync().ConfigureAwait(false);
 
-            Task.Factory.StartNew(() =>
-            {
-                if (UDPListener == null)
-                {
-                    UDPListener = new UDPListener();
-                    UDPListener.DeviceNotificationRecieved += UDPListener_DeviceNotificationRecievedAsync;
-                    UDPListener.StartListener(41100);
-                }
-            }).ConfigureAwait(false);
+            System.Threading.ThreadPool.QueueUserWorkItem(StartUDPListener);
 
             await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
             {
@@ -251,6 +238,20 @@ namespace App4.ViewModels
                 await RefreshDevicesAsync(null).ConfigureAwait(false);
                 await SaveDevicesInStorageAsync(Devices.ToList()).ConfigureAwait(false);
             });
+        }
+
+        /// <summary>
+        /// Starts the UDP listener.
+        /// </summary>
+        /// <param name="state">The state.</param>
+        private void StartUDPListener(object state)
+        {
+            if (UDPListener == null)
+            {
+                UDPListener = new UDPListener();
+                UDPListener.DeviceNotificationRecieved += UDPListener_DeviceNotificationRecievedAsync;
+                UDPListener.StartListener(41100);
+            }
         }
 
         /// <summary>
