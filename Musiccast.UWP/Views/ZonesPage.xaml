@@ -36,7 +36,7 @@
                 HorizontalAlignment="Stretch"
                 Background="{x:Bind BackGround, Mode=OneWay}"
                 Opacity="{x:Bind IsOn, Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}"
-                Style="{StaticResource GridViewItemRevealBackgroundShowsAboveContentStyle}">
+                >
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />

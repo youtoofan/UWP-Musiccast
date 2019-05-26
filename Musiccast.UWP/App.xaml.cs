@@ -7,6 +7,9 @@ using Windows.ApplicationModel.Activation;
 using Windows.UI.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using Musiccast.Service;
+using Windows.Storage;
+using App4.Helpers;
+using Microsoft.Extensions.Logging;
 
 namespace App4
 {
@@ -25,16 +28,29 @@ namespace App4
         {
             InitializeComponent();
 
-            var services = new ServiceCollection().AddHttpClient();
-            services.AddTransient<MusicCastService>();
-            ServiceProvider = services.BuildServiceProvider();
-
             // Deferred execution until used. Check https://msdn.microsoft.com/library/dd642331(v=vs.110).aspx for further info on Lazy<T> class.
             _activationService = new Lazy<ActivationService>(CreateActivationService);
+            this.UnhandledException += App_UnhandledExceptionAsync;
+        }
+
+        private async void App_UnhandledExceptionAsync(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
+        {
+            var logger = App.ServiceProvider.GetService(typeof(ILogger<App>)) as ILogger<App>;
+            logger.LogError(e.Exception, "Unhandled");
         }
 
         protected override async void OnLaunched(LaunchActivatedEventArgs args)
         {
+            var services = new ServiceCollection();
+            services.AddHttpClient();
+            services.AddLogging();
+            services.AddTransient<MusicCastService>();
+
+            var folder = ApplicationData.Current.LocalFolder;
+            var fullPath = $"{folder.Path}\\Logs\\App.log";
+            ServiceProvider = services.BuildServiceProvider();
+            ServiceProvider.GetService<ILoggerFactory>().AddFile(fullPath, LogLevel.Error, null, false, retainedFileCountLimit: 2);
+
             if (!args.PrelaunchActivated)
             {
                 await ActivationService.ActivateAsync(args);

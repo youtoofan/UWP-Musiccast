@@ -13,6 +13,7 @@ using App4.Services;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Views;
+using Microsoft.Extensions.Logging;
 using Microsoft.Toolkit.Uwp.Helpers;
 using Musiccast.Helpers;
 using Musiccast.Model;
@@ -39,6 +40,8 @@ namespace App4.ViewModels
         /// The navigation service
         /// </summary>
         private readonly NavigationServiceEx navigationService;
+        private readonly ILogger<ZonesViewModel> logger;
+
         /// <summary>
         /// The service
         /// </summary>
@@ -113,6 +116,7 @@ namespace App4.ViewModels
         {
             Devices = new ObservableCollection<Device>();
             this.navigationService = navigationService;
+            this.logger = App.ServiceProvider.GetService(typeof(ILogger<ZonesViewModel>)) as ILogger<ZonesViewModel>;
             this.service = App.ServiceProvider.GetService(typeof(MusicCastService)) as MusicCastService;
         }
 
@@ -123,6 +127,8 @@ namespace App4.ViewModels
         /// <param name="deviceId">The device identifier.</param>
         private async void UDPListener_DeviceNotificationRecievedAsync(object sender, string deviceId)
         {
+            logger.LogInformation("Listening");
+
             var existingDevice = Devices.FirstOrDefault(w => w.Id.Equals(deviceId));
             if (existingDevice == null)
                 return;
@@ -165,51 +171,61 @@ namespace App4.ViewModels
         /// <returns></returns>
         private async Task RefreshDevicesAsync(object state)
         {
-            if (!Devices.Any())
-                return;
-
-            for (int i = Devices.Count -1; i >= 0 ; i--)
+            try
             {
-                Device e = Devices.Count >= i ? Devices[i] : null;
-                if (e == null || e.BaseUri == null)
-                    continue;
+                if (!Devices.Any())
+                    return;
 
-                var updatedDevice = await service.RefreshDeviceAsync(e.Id, new Uri(e.BaseUri), e.Zone).ConfigureAwait(false);
+                logger.LogInformation("Refreshing");
 
-                await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+                for (int i = Devices.Count - 1; i >= 0; i--)
                 {
-                    try
-                    {
-                        if (updatedDevice == null)
-                        {
-                            if(Devices.Any() && Devices.Count > i)
-                                Devices.RemoveAt(i);
-                        }
-                        else
-                        {
-                            e.Power = updatedDevice.Power;
-                            e.Input = updatedDevice.Input.ToString();
-                            e.SubTitle = updatedDevice.NowPlayingInformation;
-                            e.BackGround = new AcrylicBrush() { TintColor = Colors.OrangeRed, TintOpacity = 0.8 };
-                            e.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
-                            e.ImageSize = e.ImageSize;
+                    Device e = Devices.Count >= i ? Devices[i] : null;
+                    if (e == null || e.BaseUri == null)
+                        continue;
 
-                            if (string.IsNullOrEmpty(e.FriendlyName))
-                                e.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
+                    var updatedDevice = await service.RefreshDeviceAsync(e.Id, new Uri(e.BaseUri), e.Zone).ConfigureAwait(false);
 
-                            e.PowerToggled -= async (s, args) => { await Item_PowerToggledAsync(s, args); };
-                            e.PowerToggled += async (s, args) => { await Item_PowerToggledAsync(s, args); };
+                    await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+                    {
+                        try
+                        {
+                            if (updatedDevice == null)
+                            {
+                                if (Devices.Any() && Devices.Count > i)
+                                    Devices.RemoveAt(i);
+                            }
+                            else
+                            {
+                                e.Power = updatedDevice.Power;
+                                e.Input = updatedDevice.Input.ToString();
+                                e.SubTitle = updatedDevice.NowPlayingInformation;
+                                e.BackGround = new AcrylicBrush() { TintColor = Colors.OrangeRed, TintOpacity = 0.8 };
+                                e.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
+                                e.ImageSize = e.ImageSize;
+
+                                if (string.IsNullOrEmpty(e.FriendlyName))
+                                    e.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
+
+                                e.PowerToggled -= async (s, args) => { await Item_PowerToggledAsync(s, args); };
+                                e.PowerToggled += async (s, args) => { await Item_PowerToggledAsync(s, args); };
+                            }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex, "Exception");
-                    }
-                    finally
-                    {
-                        IsLoading = false;
-                    }
-                });
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex, "Exception while refreshing");
+                        }
+                        finally
+                        {
+                            IsLoading = false;
+                        }
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                var file = await ApplicationData.Current.LocalFolder.CreateFileAsync("Errors.txt", CreationCollisionOption.OpenIfExists);
+                await FileIO.WriteTextAsync(file, e.ToString());
             }
         }
 
@@ -219,6 +235,8 @@ namespace App4.ViewModels
         /// <returns></returns>
         public async Task InitAsync()
         {
+            logger.LogInformation("Init async");
+
             var temp = await LoadDevicesFromStorageAsync().ConfigureAwait(false);
 
             System.Threading.ThreadPool.QueueUserWorkItem(StartUDPListener);
@@ -319,11 +337,11 @@ namespace App4.ViewModels
         /// <returns></returns>
         public async Task FindNewDevices()
         {
-            await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
+            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
             {
                 IsLoading = true;
                 service.DeviceFound += Service_DeviceFoundAsync;
-                await service.LoadRoomsAsync().ConfigureAwait(false);
+                service.LoadRooms();
             });
         }
 
@@ -376,8 +394,15 @@ namespace App4.ViewModels
         /// <returns></returns>
         private static async Task<List<Device>> LoadDevicesFromStorageAsync()
         {
-            var devices = await ApplicationData.Current.LocalSettings.ReadAsync<List<Device>>(DevicesKey).ConfigureAwait(false);
-            return devices ?? new List<Device>();
+            try
+            {
+                var devices = await ApplicationData.Current.LocalSettings.ReadAsync<List<Device>>(DevicesKey).ConfigureAwait(false);
+                return devices ?? new List<Device>();
+            }
+            catch (Exception)
+            {
+                return new List<Device>(0);
+            }
         }
 
         /// <summary>
@@ -389,8 +414,6 @@ namespace App4.ViewModels
         {
             await ApplicationData.Current.LocalSettings.SaveAsync(DevicesKey, devices).ConfigureAwait(false);
         }
-
-        
     }
 }
 

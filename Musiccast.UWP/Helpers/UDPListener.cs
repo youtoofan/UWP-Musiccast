@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Musiccast.Helpers
@@ -27,46 +28,47 @@ namespace Musiccast.Helpers
         /// <param name="port">The port.</param>
         public void StartListener(int port)
         {
-            try
+            ThreadPool.QueueUserWorkItem((state) =>
             {
-                IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
-
-                var multicastIp = IPAddress.Parse(_ssdpMulticastIp);
-                _multicastEndPoint = new IPEndPoint(multicastIp, _endpointPort);
-                _udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-                var option = new MulticastOption(multicastIp);
-                _udpSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, option);
-                _udpSocket.Bind(localEndPoint);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e);
-            }
-
-            Debug.WriteLine("UDP-Socket setup done...\r\n");
-
-            byte[] receiveBuffer = new byte[64000];
-
-            while (DeviceNotificationRecieved != null)
-            {
-                if (!_disposed && _udpSocket.Available > 0)
+                try
                 {
-                    var receivedBytes = _udpSocket.Receive(receiveBuffer, SocketFlags.None);
+                    IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
 
-                    if (receivedBytes > 0)
+                    var multicastIp = IPAddress.Parse(_ssdpMulticastIp);
+                    _multicastEndPoint = new IPEndPoint(multicastIp, _endpointPort);
+                    _udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+                    var option = new MulticastOption(multicastIp);
+                    _udpSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, option);
+                    _udpSocket.Bind(localEndPoint);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e);
+                }
+
+                byte[] receiveBuffer = new byte[64000];
+
+                while (DeviceNotificationRecieved != null)
+                {
+                    if (!_disposed && _udpSocket.Available > 0)
                     {
-                        var temp = Encoding.UTF8.GetString(receiveBuffer, 0, receivedBytes);
-                        Debug.WriteLine(temp);
-                        var result = JsonConvert.DeserializeObject<MusicCastNotification>(temp);
-                        if (result != null && !string.IsNullOrEmpty(result.device_id))
+                        var receivedBytes = _udpSocket.Receive(receiveBuffer, SocketFlags.None);
+
+                        if (receivedBytes > 0)
                         {
-                            string id = result.device_id;
-                            DeviceNotificationRecieved(this, id);
+                            var temp = Encoding.UTF8.GetString(receiveBuffer, 0, receivedBytes);
+                            Debug.WriteLine(temp);
+                            var result = JsonConvert.DeserializeObject<MusicCastNotification>(temp);
+                            if (result != null && !string.IsNullOrEmpty(result.device_id))
+                            {
+                                string id = result.device_id;
+                                DeviceNotificationRecieved(this, id);
+                            }
                         }
                     }
                 }
-            }
+            });
         }
 
         /// <summary>

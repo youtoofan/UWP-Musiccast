@@ -9,9 +9,10 @@ using System.Xml.Serialization;
 
 namespace Musiccast.Service
 {
-    public class DLNADiscovery
+    public class DLNADiscovery:IDisposable
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly SsdpDeviceLocator deviceLocator;
 
         public event EventHandler<DLNADescription> DeviceFound;
 
@@ -19,45 +20,23 @@ namespace Musiccast.Service
         /// Initializes a new instance of the <see cref="DLNADiscovery"/> class.
         /// </summary>
         /// <param name="httpClientFactory">The HTTP client factory.</param>
-        public DLNADiscovery(IHttpClientFactory httpClientFactory)
+        public DLNADiscovery(IHttpClientFactory httpClientFactory, string localIp)
         {
             this._httpClientFactory = httpClientFactory;
+            this.deviceLocator = new SsdpDeviceLocator(localIp);
         }
 
         /// <summary>
         /// Scans the network asynchronous.
         /// </summary>
-        /// <param name="token">The token.</param>
+        /// 
         /// <returns></returns>
-        public async Task ScanNetworkAsync(CancellationToken token)
+        public void ScanNetwork()
         {
-            // This code goes in a method somewhere.
-            using (var deviceLocator = new SsdpDeviceLocator())
-            {
-                //deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailable;
-                //deviceLocator.StartListeningForNotifications();
-
-                await Task.Factory.StartNew(async () =>
-                {
-                    var foundDevices = await deviceLocator.SearchAsync().ConfigureAwait(false); // Can pass search arguments here (device type, uuid). No arguments means all devices.
-
-                    foreach (var foundDevice in foundDevices)
-                    {
-                        // Device data returned only contains basic device details and location ]
-                        // of full device description.
-                        Debug.WriteLine("Found " + foundDevice.Usn + " at " + foundDevice.DescriptionLocation.ToString());
-
-                        // Can retrieve the full device description easily though.
-                        var fullDevice = await foundDevice.GetDeviceInfo().ConfigureAwait(false);
-                        Debug.WriteLine(fullDevice.FriendlyName);
-                        Debug.WriteLine("");
-
-                        var result = await RenderDeviceAsync(foundDevice.DescriptionLocation.ToString()).ConfigureAwait(false);
-                        if (result != null && DeviceFound != null)
-                            DeviceFound(this, result);
-                    }
-                });
-            }
+            deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailableAsync;
+            deviceLocator.StartListeningForNotifications();
+            deviceLocator.NotificationFilter = "urn:schemas-upnp-org:device:MediaRenderer:1";
+            deviceLocator.SearchAsync(TimeSpan.FromSeconds(30));
         }
 
         /// <summary>
@@ -65,10 +44,26 @@ namespace Musiccast.Service
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="DeviceAvailableEventArgs"/> instance containing the event data.</param>
-        private void DeviceLocator_DeviceAvailable(object sender, DeviceAvailableEventArgs e)
+        private async void DeviceLocator_DeviceAvailableAsync(object sender, DeviceAvailableEventArgs e)
         {
             if (!e.IsNewlyDiscovered)
+            {
                 Debug.WriteLine("DEVICE EVENT --> " + e.DiscoveredDevice.NotificationType + ": " + e.DiscoveredDevice.DescriptionLocation);
+            }
+            else
+            {
+                var foundDevice = e.DiscoveredDevice;
+                Debug.WriteLine("Found " + foundDevice.Usn + " at " + foundDevice.DescriptionLocation.ToString());
+
+                // Can retrieve the full device description easily though.
+                var fullDevice = await foundDevice.GetDeviceInfo().ConfigureAwait(false);
+                Debug.WriteLine(fullDevice.FriendlyName);
+                Debug.WriteLine("");
+
+                var result = await RenderDeviceAsync(foundDevice.DescriptionLocation.ToString()).ConfigureAwait(false);
+                if (result != null && DeviceFound != null)
+                    DeviceFound(this, result);
+            }
         }
 
         /// <summary>
@@ -100,6 +95,12 @@ namespace Musiccast.Service
                 Debug.WriteLine(e);
                 return null;
             }
+        }
+
+        public void Dispose()
+        {
+            if (deviceLocator != null && !deviceLocator.IsDisposed)
+                deviceLocator.Dispose();
         }
     }
 }

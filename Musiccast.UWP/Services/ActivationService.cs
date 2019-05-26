@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using App4.Activation;
-
+using Microsoft.Extensions.Logging;
 using Windows.ApplicationModel.Activation;
 using Windows.UI.Core;
 using Windows.UI.Xaml;

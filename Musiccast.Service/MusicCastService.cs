@@ -10,13 +10,14 @@ using Windows.System.Threading;
 using System.Runtime.Serialization;
 using System.Diagnostics;
 using System.Net.Http;
+using Windows.Networking.Connectivity;
 
 namespace Musiccast.Service
 {
     /// <summary>
     /// 
     /// </summary>
-    public class MusicCastService
+    public class MusicCastService:IDisposable
     {
         /// <summary>
         /// Occurs when [device found].
@@ -79,6 +80,7 @@ namespace Musiccast.Service
         /// </summary>
         private const string RecallUsbPreset = "/YamahaExtendedControl/v1/netusb/recallPreset?zone={0}&num={1}";
         private readonly IHttpClientFactory _httpClientFactory;
+        private DLNADiscovery service;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MusicCastService"/> class.
@@ -380,11 +382,30 @@ namespace Musiccast.Service
         /// Loads the rooms asynchronous.
         /// </summary>
         /// <returns></returns>
-        public async Task LoadRoomsAsync()
+        public void LoadRooms()
         {
-            var service = new DLNADiscovery(_httpClientFactory);
+            this.service = new DLNADiscovery(_httpClientFactory, GetLocalIp());
             service.DeviceFound += async (s, e) => { await DeviceFoundAsync(s, e).ConfigureAwait(false); };
-            await service.ScanNetworkAsync(CancellationToken.None).ConfigureAwait(false);
+            service.ScanNetwork();
+        }
+
+        private string GetLocalIp()
+        {
+            var icp = NetworkInformation.GetInternetConnectionProfile();
+
+            if (icp?.NetworkAdapter == null)
+                return null;
+
+            var hostnames = NetworkInformation.GetHostNames().Where(hn =>
+                            hn.IPInformation?.NetworkAdapter != null && 
+                            hn.IPInformation.NetworkAdapter.NetworkAdapterId == icp.NetworkAdapter.NetworkAdapterId);
+
+            var hostname = hostnames.FirstOrDefault(t => t.Type == Windows.Networking.HostNameType.Ipv4);
+            if (hostname == null)
+                hostname = hostnames.FirstOrDefault();
+
+            // the ip address
+            return hostname?.CanonicalName;
         }
 
         /// <summary>
@@ -467,7 +488,13 @@ namespace Musiccast.Service
             }
         }
 
-        
+        public void Dispose()
+        {
+            if (service != null)
+                service.Dispose();
+        }
+
+
 
         #endregion
     }
