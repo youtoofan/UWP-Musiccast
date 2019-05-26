@@ -2,115 +2,179 @@
     x:Class="App4.Views.ZonesPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:helpers="using:Musiccast.Helpers"
-    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
-    xmlns:local="using:Musiccast.Models"
-    xmlns:winui="using:Microsoft.UI.Xaml.Controls"
-    xmlns:lottie="using:Microsoft.Toolkit.Uwp.UI.Lottie"
-    xmlns:helpers1="using:App4.Helpers"
     xmlns:animatedvisuals="using:AnimatedVisuals"
-    Style="{StaticResource PageStyle}"
+    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helpers="using:Musiccast.Helpers"
+    xmlns:helpers1="using:App4.Helpers"
+    xmlns:local="using:Musiccast.Models"
+    xmlns:lottie="using:Microsoft.Toolkit.Uwp.UI.Lottie"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:winui="using:Microsoft.UI.Xaml.Controls"
     DataContext="{Binding ZonesViewModel, Source={StaticResource Locator}}"
+    Style="{StaticResource PageStyle}"
     mc:Ignorable="d">
     <Page.Resources>
-        <Style x:Key="zcTextBase" TargetType="TextBlock" BasedOn="{StaticResource BodyTextStyle}">
+        <Style
+            x:Key="zcTextBase"
+            BasedOn="{StaticResource BodyTextStyle}"
+            TargetType="TextBlock">
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Margin" Value="5,3" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
-        <helpers:UriToBitmapConverter x:Name="uriToBitmapConverter"/>
-       
-        <helpers:BooleanToOpacityConverter x:Name="booleanToOpacityConverter"/>
-        <helpers:ObjectToDeviceConverter x:Name="objectToDeviceConverter"/>
-        <helpers:BooleanToVisibilityConverter x:Name="booleanToVisibilityConverter"/>
-        
+        <helpers:UriToBitmapConverter x:Name="uriToBitmapConverter" />
+
+        <helpers:BooleanToOpacityConverter x:Name="booleanToOpacityConverter" />
+        <helpers:ObjectToDeviceConverter x:Name="objectToDeviceConverter" />
+        <helpers:BooleanToVisibilityConverter x:Name="booleanToVisibilityConverter" />
+
         <DataTemplate x:Name="ContactListViewTemplate" x:DataType="local:Device">
-            <Grid HorizontalAlignment="Stretch"
-                  Opacity="{x:Bind IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}"
-                  Style="{StaticResource GridViewItemRevealBackgroundShowsAboveContentStyle}"
-                  Padding="{StaticResource FlyoutContentThemePadding}"
-                  Background="{x:Bind BackGround, Mode=OneWay}">
+            <Grid
+                Padding="{StaticResource FlyoutContentThemePadding}"
+                HorizontalAlignment="Stretch"
+                Background="{x:Bind BackGround, Mode=OneWay}"
+                Opacity="{x:Bind IsOn, Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}"
+                Style="{StaticResource GridViewItemRevealBackgroundShowsAboveContentStyle}">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0">
-                    <TextBlock Text="{x:Bind FriendlyName, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <StackPanel
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Orientation="Horizontal">
+                    <TextBlock
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Text="{x:Bind FriendlyName, Mode=OneWay}" />
                 </StackPanel>
-                <ToggleButton Command="{x:Bind TogglePowerCommand}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" IsChecked="{x:Bind IsOn, Mode=OneWay}">
-                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind IsOnString, Mode=OneWay}"/>
+                <ToggleButton
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Command="{x:Bind TogglePowerCommand}"
+                    IsChecked="{x:Bind IsOn, Mode=OneWay}">
+                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind IsOnString, Mode=OneWay}" />
                 </ToggleButton>
-                <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="2">
-                    <Border BorderThickness="1,1,1,1" Width="30" Height="30">
-                        <winui:AnimatedVisualPlayer x:Name="LottiePlayer" AutoPlay="True" Visibility="{x:Bind IsOn, Converter={StaticResource booleanToVisibilityConverter}, Mode=OneWay}">
-                            <animatedvisuals:LottieAnim/>
+                <StackPanel
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Orientation="Horizontal">
+                    <Border
+                        Width="30"
+                        Height="30"
+                        BorderThickness="1,1,1,1">
+                        <winui:AnimatedVisualPlayer
+                            x:Name="LottiePlayer"
+                            AutoPlay="True"
+                            Visibility="{x:Bind IsOn, Converter={StaticResource booleanToVisibilityConverter}, Mode=OneWay}">
+                            <animatedvisuals:LottieAnim />
                             <winui:AnimatedVisualPlayer.FallbackContent>
                                 <DataTemplate>
-                                    <SymbolIcon VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Symbol="MusicInfo"></SymbolIcon>
+                                    <SymbolIcon
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch"
+                                        Symbol="MusicInfo" />
                                 </DataTemplate>
                             </winui:AnimatedVisualPlayer.FallbackContent>
                         </winui:AnimatedVisualPlayer>
                     </Border>
-                    <StackPanel Orientation="Vertical" Padding="{StaticResource TextControlThemePadding}">
-                        <TextBlock Text="{x:Bind Input, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Top" HorizontalAlignment="Left" />
-                        <TextBlock Text="{x:Bind SubTitle, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                    <StackPanel Padding="{StaticResource TextControlThemePadding}" Orientation="Vertical">
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind Input, Mode=OneWay}" />
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind SubTitle, Mode=OneWay}" />
                     </StackPanel>
                 </StackPanel>
             </Grid>
         </DataTemplate>
     </Page.Resources>
-    <Grid
-        x:Name="ContentArea"
-        Background="{ThemeResource  SystemControlChromeHighAcrylicWindowMediumBrush}"
-        >
+    <Grid x:Name="ContentArea" Background="{ThemeResource SystemControlChromeHighAcrylicWindowMediumBrush}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Grid Grid.Row="0" VerticalAlignment="Center" Margin="{StaticResource MediumLeftTopRightBottomMargin}">
+        <Grid
+            Grid.Row="0"
+            Margin="{StaticResource MediumLeftTopRightBottomMargin}"
+            VerticalAlignment="Center">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="3*"/>
-                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="1*" />
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" HorizontalAlignment="Left" Background="Transparent">
-                <SymbolIcon Symbol="Link"/>
+            <Button
+                Grid.Column="0"
+                HorizontalAlignment="Left"
+                Background="Transparent">
+                <SymbolIcon Symbol="Link" />
             </Button>
-            <TextBlock Grid.Column="1" HorizontalAlignment="Center" x:Uid="Zones_Header" Style="{StaticResource SubtitleTextBlockStyle}"/>
-            <Button Grid.Column="2" HorizontalAlignment="Right" Command="{x:Bind ViewModel.AddDeviceCommand}" Background="Transparent">
-                <SymbolIcon Symbol="Add"/>
+            <TextBlock
+                x:Uid="Zones_Header"
+                Grid.Column="1"
+                HorizontalAlignment="Center"
+                Style="{StaticResource SubtitleTextBlockStyle}" />
+            <Button
+                Grid.Column="2"
+                HorizontalAlignment="Right"
+                Background="Transparent"
+                Command="{x:Bind ViewModel.AddDeviceCommand}">
+                <SymbolIcon Symbol="Add" />
             </Button>
         </Grid>
-        <controls:AdaptiveGridView Name="AdaptiveGridViewControl"
-                                   OneRowModeEnabled="False"
-                                   ItemHeight="200"
-                                   DesiredWidth="500"
-                                   SelectionMode="Single"
-                                   IsItemClickEnabled="True"
-                                   ItemsSource="{x:Bind ViewModel.Devices, Mode=OneWay}" Grid.Row="1"
-                                   ItemClickCommand="{x:Bind ViewModel.ViewDeviceDetailCommand}"
-                  ItemTemplate="{StaticResource ContactListViewTemplate}">
-        </controls:AdaptiveGridView>
-        <controls:Loading x:Name="LoadingControl" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.RowSpan="2" IsLoading="{x:Bind ViewModel.IsLoading, Mode=OneWay}">
+        <controls:AdaptiveGridView
+            Name="AdaptiveGridViewControl"
+            Grid.Row="1"
+            DesiredWidth="500"
+            IsItemClickEnabled="True"
+            ItemClickCommand="{x:Bind ViewModel.ViewDeviceDetailCommand}"
+            ItemHeight="200"
+            ItemTemplate="{StaticResource ContactListViewTemplate}"
+            ItemsSource="{x:Bind ViewModel.Devices, Mode=OneWay}"
+            OneRowModeEnabled="False"
+            SelectionMode="Single" />
+        <controls:Loading
+            x:Name="LoadingControl"
+            Grid.RowSpan="2"
+            HorizontalContentAlignment="Center"
+            VerticalContentAlignment="Center"
+            IsLoading="{x:Bind ViewModel.IsLoading, Mode=OneWay}">
             <controls:Loading.Background>
-                <SolidColorBrush Color="Black" Opacity="0.7" />
+                <SolidColorBrush Opacity="0.7" Color="Black" />
             </controls:Loading.Background>
             <ContentControl x:Name="LoadingContentControl">
-                <StackPanel Orientation="Vertical" Padding="12">
-                    <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" Margin="0,0,12,0" HorizontalAlignment="Center"/>
-                    <TextBlock x:Uid="LoadingDevices" VerticalAlignment="Center" Foreground="White" HorizontalAlignment="Center"/>
-                    <Button x:Uid="SearchButtonInProgress" HorizontalAlignment="Center" Command="{x:Bind ViewModel.CancelSearchCommand, Mode=OneWay}"/>
+                <StackPanel Padding="12" Orientation="Vertical">
+                    <ProgressRing
+                        Margin="0,0,12,0"
+                        HorizontalAlignment="Center"
+                        IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
+                    <TextBlock
+                        x:Uid="LoadingDevices"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Foreground="White" />
+                    <Button
+                        x:Uid="SearchButtonInProgress"
+                        HorizontalAlignment="Center"
+                        Command="{x:Bind ViewModel.CancelSearchCommand, Mode=OneWay}" />
                 </StackPanel>
             </ContentControl>
         </controls:Loading>
