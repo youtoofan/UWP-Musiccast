@@ -10,11 +10,16 @@ using Musiccast.Service;
 using Windows.Storage;
 using App4.Helpers;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
+using Musiccast.Helpers;
 
 namespace App4
 {
     public sealed partial class App : Application
     {
+        private UDPListener UDPListener;
+        public static event EventHandler<string> UDPNotificationReceived;
+
         public static ServiceProvider ServiceProvider { get; private set; }
 
         private Lazy<ActivationService> _activationService;
@@ -27,13 +32,13 @@ namespace App4
         public App()
         {
             InitializeComponent();
-
+            StartUDPListener();
             // Deferred execution until used. Check https://msdn.microsoft.com/library/dd642331(v=vs.110).aspx for further info on Lazy<T> class.
             _activationService = new Lazy<ActivationService>(CreateActivationService);
-            this.UnhandledException += App_UnhandledExceptionAsync;
+            this.UnhandledException += App_UnhandledException;
         }
 
-        private async void App_UnhandledExceptionAsync(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
+        private void App_UnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
         {
             var logger = App.ServiceProvider.GetService(typeof(ILogger<App>)) as ILogger<App>;
             logger.LogError(e.Exception, "Unhandled");
@@ -67,6 +72,36 @@ namespace App4
         private ActivationService CreateActivationService()
         {
             return new ActivationService(this, typeof(ViewModels.ZonesViewModel));
+        }
+
+        private void StartUDPListener()
+        {
+            if (UDPListener == null)
+            {
+                UDPListener = new UDPListener();
+                UDPListener.DeviceNotificationRecieved += HandleUDP;
+                UDPListener.StartListener(41100);
+            }
+        }
+
+        private void HandleUDP(object sender, string e)
+        {
+            if (UDPNotificationReceived != null)
+                UDPNotificationReceived.Invoke(this, e);
+        }
+
+        private void StopUDPpListener()
+        {
+            if (UDPListener != null)
+            {
+                UDPListener.DeviceNotificationRecieved -= HandleUDP;
+                UDPListener.Dispose();
+            }
+        }
+
+        ~App()
+        {
+            StopUDPpListener();
         }
     }
 }

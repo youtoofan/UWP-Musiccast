@@ -54,10 +54,7 @@ namespace App4.ViewModels
         /// </value>
         public ObservableCollection<Device> Devices { get; set; }
 
-        /// <summary>
-        /// The UDP listener
-        /// </summary>
-        public UDPListener UDPListener;
+        
 
         /// <summary>
         /// Gets the add device command.
@@ -148,10 +145,6 @@ namespace App4.ViewModels
 
                     if (string.IsNullOrEmpty(existingDevice.FriendlyName))
                         existingDevice.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
-
-                    existingDevice.PowerToggled -= async (s, args) => { await Item_PowerToggledAsync(s, args); };
-                    existingDevice.PowerToggled += async (s, args) => { await Item_PowerToggledAsync(s, args); };
-
                 }
                 catch (Exception ex)
                 {
@@ -239,7 +232,7 @@ namespace App4.ViewModels
 
             var temp = await LoadDevicesFromStorageAsync().ConfigureAwait(false);
 
-            System.Threading.ThreadPool.QueueUserWorkItem(StartUDPListener);
+            App.UDPNotificationReceived += UDPListener_DeviceNotificationRecievedAsync;
 
             await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
             {
@@ -259,20 +252,6 @@ namespace App4.ViewModels
         }
 
         /// <summary>
-        /// Starts the UDP listener.
-        /// </summary>
-        /// <param name="state">The state.</param>
-        private void StartUDPListener(object state)
-        {
-            if (UDPListener == null)
-            {
-                UDPListener = new UDPListener();
-                UDPListener.DeviceNotificationRecieved += UDPListener_DeviceNotificationRecievedAsync;
-                UDPListener.StartListener(41100);
-            }
-        }
-
-        /// <summary>
         /// Destroys the asynchronous.
         /// </summary>
         /// <returns></returns>
@@ -283,14 +262,7 @@ namespace App4.ViewModels
                 Devices.Clear();
             });
 
-            await Windows.System.Threading.ThreadPool.RunAsync((state) =>
-            {
-                if (UDPListener != null)
-                {
-                    UDPListener.DeviceNotificationRecieved -= UDPListener_DeviceNotificationRecievedAsync;
-                    UDPListener.Dispose();
-                }
-            });
+            App.UDPNotificationReceived -= UDPListener_DeviceNotificationRecievedAsync;
         }
 
         /// <summary>
@@ -300,9 +272,6 @@ namespace App4.ViewModels
         /// </summary>
         public override void Cleanup()
         {
-            if (UDPListener != null)
-                UDPListener.Dispose();
-
             base.Cleanup();
         }
 
