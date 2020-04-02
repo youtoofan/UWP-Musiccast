@@ -25,7 +25,7 @@
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
         <helpers:UriToBitmapConverter x:Name="uriToBitmapConverter" />
-
+        <helpers:BooleanToColorConverter x:Name="booleanToColorConverter"/>
         <helpers:BooleanToOpacityConverter x:Name="booleanToOpacityConverter" />
         <helpers:ObjectToDeviceConverter x:Name="objectToDeviceConverter" />
         <helpers:BooleanToVisibilityConverter x:Name="booleanToVisibilityConverter" />
@@ -34,7 +34,7 @@
             <Grid
                 Padding="{StaticResource FlyoutContentThemePadding}"
                 HorizontalAlignment="Stretch"
-                Background="{x:Bind BackGround, Mode=OneWay}"
+                Background="{x:Bind IsAlive, Converter={StaticResource booleanToColorConverter}, Mode=OneWay}"
                 Opacity="{x:Bind IsOn, Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}"
                 >
                 <Grid.RowDefinitions>

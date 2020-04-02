@@ -139,9 +139,10 @@ namespace App4.ViewModels
                     existingDevice.Power = updatedDevice.Power;
                     existingDevice.Input = updatedDevice.Input.ToString();
                     existingDevice.SubTitle = updatedDevice.NowPlayingInformation;
-                    existingDevice.BackGround = new AcrylicBrush() { TintColor = Colors.OrangeRed, TintOpacity = 0.8 };
+                    existingDevice.IsAlive = true;
                     existingDevice.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
                     existingDevice.ImageSize = existingDevice.ImageSize;
+                    existingDevice.FriendlyName = string.IsNullOrEmpty(updatedDevice.FriendlyName) ? existingDevice.FriendlyName : updatedDevice.FriendlyName;
 
                     if (string.IsNullOrEmpty(existingDevice.FriendlyName))
                         existingDevice.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
@@ -193,9 +194,10 @@ namespace App4.ViewModels
                                 e.Power = updatedDevice.Power;
                                 e.Input = updatedDevice.Input.ToString();
                                 e.SubTitle = updatedDevice.NowPlayingInformation;
-                                e.BackGround = new AcrylicBrush() { TintColor = Colors.OrangeRed, TintOpacity = 0.8 };
+                                e.IsAlive = true;
                                 e.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
                                 e.ImageSize = e.ImageSize;
+                                e.FriendlyName = string.IsNullOrEmpty(updatedDevice.FriendlyName) ? e.FriendlyName : updatedDevice.FriendlyName;
 
                                 if (string.IsNullOrEmpty(e.FriendlyName))
                                     e.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
@@ -337,13 +339,13 @@ namespace App4.ViewModels
             {
                 IsLoading = false;
 
-                if (Devices.Where(w => w != null).Select(s => s.Id + s.Zone).Contains(device.Id + device.Zone))
+                if (Devices.Where(w => w != null).Select(s => s.Id).Contains(device.Id))
                     return;
 
                 Devices.Add(new Device()
                 {
                     Id = device.Id,
-                    BaseUri = device.BaseUri,
+                    BaseUri = device.BaseUri.ToString(),
                     Zone = device.Zone,
                     FriendlyName = device.FriendlyName,
                     ImageUri = UriHelper.ResolvePath(device.Location, device.ImagePath),
@@ -351,7 +353,7 @@ namespace App4.ViewModels
                     Power = device.Power,
                     Input = device.Input.ToString(),
                     SubTitle = device.NowPlayingInformation,
-                    BackGround = new SolidColorBrush(Colors.LightGray)
+                    IsAlive = true
                 });
             });
             await SaveDevicesInStorageAsync(Devices.ToList()).ConfigureAwait(false);
@@ -366,6 +368,10 @@ namespace App4.ViewModels
             try
             {
                 var devices = await ApplicationData.Current.LocalSettings.ReadAsync<List<Device>>(DevicesKey).ConfigureAwait(false);
+                foreach (var item in devices)
+                {
+                    item.IsAlive = false;
+                }
                 return devices ?? new List<Device>();
             }
             catch (Exception)

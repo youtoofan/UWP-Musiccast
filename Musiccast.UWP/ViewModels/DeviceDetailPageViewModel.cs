@@ -239,6 +239,7 @@ namespace App4.ViewModels
                     Device.MaxVolume = updatedDevice.MaxVolume;
                     Device.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
                     Device.ImageSize = updatedDevice.ImageSize;
+                    Device.FriendlyName = string.IsNullOrEmpty(updatedDevice.FriendlyName) ? Device.FriendlyName : updatedDevice.FriendlyName;
 
                     foreach (var item in features.system.input_list)
                     {

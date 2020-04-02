@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Musiccast.Model;
 using Newtonsoft.Json;
-using Windows.System.Threading;
-using System.Runtime.Serialization;
 using System.Diagnostics;
 using System.Net.Http;
 using Windows.Networking.Connectivity;
@@ -17,8 +12,9 @@ namespace Musiccast.Service
     /// <summary>
     /// 
     /// </summary>
-    public class MusicCastService:IDisposable
+    public class MusicCastService : IDisposable
     {
+        private bool isDisposed;
         /// <summary>
         /// Occurs when [device found].
         /// </summary>
@@ -39,6 +35,9 @@ namespace Musiccast.Service
         /// The status
         /// </summary>
         private const string Status = "/YamahaExtendedControl/v2/{0}/getStatus";
+
+        private const string Distribution = "YamahaExtendedControl/v1/dist/getDistributionInfo";
+
         /// <summary>
         /// The names
         /// </summary>
@@ -99,7 +98,7 @@ namespace Musiccast.Service
         /// <param name="sender">The sender.</param>
         /// <param name="device">The device.</param>
         /// <returns></returns>
-        private async Task DeviceFoundAsync(object sender, DLNADescription device)
+        private async void DeviceFoundAsync(object sender, DLNADescription device)
         {
             if (device == null || device.X_device == null)
                 return;
@@ -108,14 +107,22 @@ namespace Musiccast.Service
             var info = await this.GetDeviceInfo(baseUri).ConfigureAwait(false);
             await this.GetNetworkStatus(baseUri).ConfigureAwait(false);
             var location = await this.GetDeviceLocationInfoAsync(baseUri).ConfigureAwait(false);
+            var distributionInfo = await this.GetDistributionInfoAsync(baseUri).ConfigureAwait(false);
 
             foreach (var zone in location.zone_list.ValidZones)
             {
                 var status = await this.GetDeviceStatusAsync(baseUri, zone).ConfigureAwait(false);
-                var friendlyName = await this.GetDeviceZoneFriendlyNameAsync(baseUri, zone).ConfigureAwait(false);
-                var convertedModel = ConvertApiDeviceToDevice(device.X_device.X_URLBase, zone, friendlyName.text, device, status, info);
+                var friendlyName = distributionInfo.client_list.Count() > 0 ? distributionInfo.group_name : string.Empty;
 
-                if(status.input == Inputs.tuner)
+                if (string.IsNullOrEmpty(friendlyName))
+                {
+                    var temp = await this.GetDeviceZoneFriendlyNameAsync(baseUri, zone).ConfigureAwait(false);
+                    friendlyName = temp.text;
+                }
+
+                var convertedModel = ConvertApiDeviceToDevice(baseUri, zone, friendlyName, device, status, info);
+
+                if (status.input == Inputs.tuner)
                 {
                     var tuner = await this.GetTunerPlayInfoAsync(baseUri).ConfigureAwait(false);
                     convertedModel.NowPlayingInformation = tuner.NowPlayingSummary;
@@ -126,7 +133,7 @@ namespace Musiccast.Service
             }
         }
 
-        
+
 
         /// <summary>
         /// Converts the API device to device.
@@ -137,7 +144,7 @@ namespace Musiccast.Service
         /// <param name="status">The status.</param>
         /// <param name="info">The information.</param>
         /// <returns></returns>
-        private MusicCastDevice ConvertApiDeviceToDevice(string baseUri, string zone, string friendlyName, DLNADescription device, GetStatusResponse status, GetDeviceInfoResponse info)
+        private MusicCastDevice ConvertApiDeviceToDevice(Uri baseUri, string zone, string friendlyName, DLNADescription device, GetStatusResponse status, GetDeviceInfoResponse info)
         {
             return new MusicCastDevice()
             {
@@ -154,7 +161,7 @@ namespace Musiccast.Service
             };
         }
 
-        
+
 
         /// <summary>
         /// Gets the device status asynchronous.
@@ -169,6 +176,16 @@ namespace Musiccast.Service
                 AddClientHeaders(client);
                 var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Status, zoneName))).ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<GetStatusResponse>(result);
+            }
+        }
+
+        private async Task<GetDistributionInfoResponse> GetDistributionInfoAsync(Uri baseUri)
+        {
+            var client = _httpClientFactory.CreateClient();
+            {
+                AddClientHeaders(client);
+                var result = await client.GetStringAsync(new Uri(baseUri, Distribution)).ConfigureAwait(false);
+                return JsonConvert.DeserializeObject<GetDistributionInfoResponse>(result);
             }
         }
 
@@ -370,8 +387,8 @@ namespace Musiccast.Service
             if (client == null)
                 return;
 
-            client.DefaultRequestHeaders.Add("X-AppName", "MusicCast/1.41(UWP)");
-            client.DefaultRequestHeaders.Add("X-AppPort", "41100");
+            client.DefaultRequestHeaders.Add("X-AppName", Constants.UDP_ClientId);
+            client.DefaultRequestHeaders.Add("X-AppPort", Constants.UDP_ListenPort.ToString());
         }
 
         #endregion
@@ -385,7 +402,7 @@ namespace Musiccast.Service
         public void LoadRooms()
         {
             this.service = new DLNADiscovery(_httpClientFactory, GetLocalIp());
-            service.DeviceFound += async (s, e) => { await DeviceFoundAsync(s, e).ConfigureAwait(false); };
+            service.DeviceFound += DeviceFoundAsync;
             service.ScanNetwork();
         }
 
@@ -397,7 +414,7 @@ namespace Musiccast.Service
                 return null;
 
             var hostnames = NetworkInformation.GetHostNames().Where(hn =>
-                            hn.IPInformation?.NetworkAdapter != null && 
+                            hn.IPInformation?.NetworkAdapter != null &&
                             hn.IPInformation.NetworkAdapter.NetworkAdapterId == icp.NetworkAdapter.NetworkAdapterId);
 
             var hostname = hostnames.FirstOrDefault(t => t.Type == Windows.Networking.HostNameType.Ipv4);
@@ -420,6 +437,7 @@ namespace Musiccast.Service
             try
             {
                 var status = await this.GetDeviceStatusAsync(baseUri, zone).ConfigureAwait(false);
+                var distributionInfo = await this.GetDistributionInfoAsync(baseUri).ConfigureAwait(false);
 
                 var temp = new MusicCastDevice()
                 {
@@ -442,10 +460,15 @@ namespace Musiccast.Service
                     temp.NowPlayingInformation = tuner.NowPlayingSummary;
                 }
 
-                if(status.input == Inputs.mc_link)
+                if (status.input == Inputs.mc_link)
                 {
                     var tuner = await this.GetNetRadioInfoAsync(baseUri).ConfigureAwait(false);
                     temp.NowPlayingInformation = tuner.NowPlayingSummary;
+                }
+
+                if (distributionInfo.client_list.Count > 0 && !string.IsNullOrEmpty(distributionInfo.group_name))
+                {
+                    temp.FriendlyName = distributionInfo.group_name;
                 }
 
                 return temp;
@@ -488,14 +511,27 @@ namespace Musiccast.Service
             }
         }
 
+        #endregion
+
+        // Dispose() calls Dispose(true)
         public void Dispose()
         {
-            if (service != null)
-                service.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
+        // The bulk of the clean-up code is implemented in Dispose(bool)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed) return;
 
+            if (disposing)
+            {
+                if (service != null)
+                    service.Dispose();
+            }
 
-        #endregion
+            isDisposed = true;
+        }
     }
 }

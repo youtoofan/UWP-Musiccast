@@ -15,7 +15,7 @@ namespace Musiccast.Models
         private string _subTitle;
         private int _volume;
         private int _maxVolume;
-        private Brush _backGround;
+        private bool _isAlive;
         private Uri _imageUri;
 
         public event EventHandler<Device> PowerToggled;
@@ -85,16 +85,16 @@ namespace Musiccast.Models
         }
 
         [JsonIgnore]
-        public Brush BackGround
+        public bool IsAlive
         {
             get
             {
-                return _backGround;
+                return _isAlive;
             }
 
             set
             {
-                Set(ref _backGround, value);
+                Set(() => IsAlive, ref _isAlive, value);
             }
         }
 

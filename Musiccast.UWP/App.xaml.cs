@@ -33,10 +33,15 @@ namespace App4
         {
             InitializeComponent();
             StartUDPListener();
+
+            Current.Resuming += Current_Resuming;
+            Current.Suspending += Current_Suspending;
             // Deferred execution until used. Check https://msdn.microsoft.com/library/dd642331(v=vs.110).aspx for further info on Lazy<T> class.
             _activationService = new Lazy<ActivationService>(CreateActivationService);
             this.UnhandledException += App_UnhandledException;
         }
+
+        
 
         private void App_UnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
         {
@@ -74,13 +79,23 @@ namespace App4
             return new ActivationService(this, typeof(ViewModels.ZonesViewModel));
         }
 
+        private void Current_Resuming(object sender, object e)
+        {
+            StartUDPListener();
+        }
+
+        private void Current_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
+        {
+            StopUDPpListener();
+        }
+
         private void StartUDPListener()
         {
             if (UDPListener == null)
             {
                 UDPListener = new UDPListener();
                 UDPListener.DeviceNotificationRecieved += HandleUDP;
-                UDPListener.StartListener(41100);
+                UDPListener.StartListener(Musiccast.Model.Constants.UDP_ListenPort);
             }
         }
 
@@ -95,13 +110,8 @@ namespace App4
             if (UDPListener != null)
             {
                 UDPListener.DeviceNotificationRecieved -= HandleUDP;
-                UDPListener.Dispose();
+                UDPListener.StopListener();
             }
-        }
-
-        ~App()
-        {
-            StopUDPpListener();
         }
     }
 }

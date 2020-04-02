@@ -9,6 +9,17 @@ namespace Musiccast.Helpers
 {
     public static class ResourceHelper
     {
+        private static ResourceContext _context = null;
+        private static ResourceContext ResourceContext
+        {
+            get
+            {
+                if (_context == null)
+                    _context = ResourceManager.Current.DefaultContext;
+
+                return _context;
+            }
+        }
         private static ResourceMap _resourceMap = null;
         public static ResourceMap ResourceMap
         {
@@ -24,7 +35,7 @@ namespace Musiccast.Helpers
 
         public static string GetString(string key)
         {
-            return ResourceMap?.GetValue("Resources/" + key, new ResourceContext())?.ValueAsString;
+            return ResourceHelper.GetString(key, ResourceContext);
         }
 
         public static string GetString(string key, ResourceContext context)

@@ -12,15 +12,13 @@ using System.Threading.Tasks;
 
 namespace Musiccast.Helpers
 {
-    public class UDPListener : IDisposable
+    public class UDPListener
     {
         public event EventHandler<string> DeviceNotificationRecieved;
-
-        bool _disposed = false;
-        private Socket _udpSocket;
         const string _ssdpMulticastIp = "239.255.255.250";
         const int _endpointPort = 1900;
-        private IPEndPoint _multicastEndPoint;
+        private bool listening = false;
+        private UdpClient listener;
 
         /// <summary>
         /// Starts the listener.
@@ -28,74 +26,55 @@ namespace Musiccast.Helpers
         /// <param name="port">The port.</param>
         public void StartListener(int port)
         {
+            if (listening)
+                return;
+
             ThreadPool.QueueUserWorkItem((state) =>
             {
+                var multicastIp = IPAddress.Parse(_ssdpMulticastIp);
+                IPEndPoint groupEP = new IPEndPoint(multicastIp, _endpointPort);
+                listener = new UdpClient(new IPEndPoint(IPAddress.Any, port));
+                listener.EnableBroadcast = true;
+                listening = true;
+
                 try
                 {
-                    IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
+                    do
+                    {
+                        Debug.WriteLine("Waiting for broadcast");
+                        byte[] bytes = listener.Receive(ref groupEP);
+                        var temp = Encoding.ASCII.GetString(bytes, 0, bytes.Length);
 
-                    var multicastIp = IPAddress.Parse(_ssdpMulticastIp);
-                    _multicastEndPoint = new IPEndPoint(multicastIp, _endpointPort);
-                    _udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                        Debug.WriteLine($"Received broadcast from {groupEP} :");
+                        Debug.WriteLine(temp);
 
-                    var option = new MulticastOption(multicastIp);
-                    _udpSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, option);
-                    _udpSocket.Bind(localEndPoint);
+                        var result = JsonConvert.DeserializeObject<MusicCastNotification>(temp);
+                        if (result != null && !string.IsNullOrEmpty(result.device_id))
+                        {
+                            string id = result.device_id;
+                            DeviceNotificationRecieved(this, id);
+                        }
+                    } while (listening);
                 }
-                catch (Exception e)
+                catch (SocketException e)
                 {
                     Debug.WriteLine(e);
                 }
-
-                byte[] receiveBuffer = new byte[64000];
-
-                while (DeviceNotificationRecieved != null)
+                finally
                 {
-                    if (!_disposed && _udpSocket.Available > 0)
-                    {
-                        var receivedBytes = _udpSocket.Receive(receiveBuffer, SocketFlags.None);
-
-                        if (receivedBytes > 0)
-                        {
-                            var temp = Encoding.UTF8.GetString(receiveBuffer, 0, receivedBytes);
-                            Debug.WriteLine(temp);
-                            var result = JsonConvert.DeserializeObject<MusicCastNotification>(temp);
-                            if (result != null && !string.IsNullOrEmpty(result.device_id))
-                            {
-                                string id = result.device_id;
-                                DeviceNotificationRecieved(this, id);
-                            }
-                        }
-                    }
+                    listener.Close();
                 }
             });
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
+        public void StopListener()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+            listening = false;
 
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed) return;
-
-            if (disposing)
+            if (listener != null)
             {
-                //_udpSocket.Close();
-                _udpSocket.Shutdown(SocketShutdown.Both);
-                _udpSocket.Dispose();
+                listener.Close();
             }
-
-            _disposed = true;
         }
     }
 }

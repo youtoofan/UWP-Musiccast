@@ -14,10 +14,10 @@ namespace Musiccast.Helpers
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             if (value == null)
-                return new SolidColorBrush(Colors.Black);
+                return new SolidColorBrush(Colors.LightGray);
 
             var isTrue = (bool)value;
-            return isTrue ? new SolidColorBrush(Colors.Green): new SolidColorBrush(Colors.Red);
+            return isTrue ? new SolidColorBrush(Colors.OrangeRed): new SolidColorBrush(Colors.SlateGray);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

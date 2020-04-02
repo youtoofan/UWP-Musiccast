@@ -1,6 +1,7 @@
 ﻿using Rssdp;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ namespace Musiccast.Service
 {
     public class DLNADiscovery:IDisposable
     {
+        private bool isDisposed;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly SsdpDeviceLocator deviceLocator;
 
@@ -33,9 +35,13 @@ namespace Musiccast.Service
         /// <returns></returns>
         public void ScanNetwork()
         {
+            if (deviceLocator.IsSearching)
+                return;
+
             deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailableAsync;
+            deviceLocator.DeviceUnavailable += DeviceLocator_DeviceUnavailable;
             deviceLocator.StartListeningForNotifications();
-            deviceLocator.NotificationFilter = "urn:schemas-upnp-org:device:MediaRenderer:1";
+            //deviceLocator.NotificationFilter = "urn:schemas-upnp-org:device:MediaRenderer:1";
             deviceLocator.SearchAsync(TimeSpan.FromSeconds(30));
         }
 
@@ -48,22 +54,26 @@ namespace Musiccast.Service
         {
             if (!e.IsNewlyDiscovered)
             {
-                Debug.WriteLine("DEVICE EVENT --> " + e.DiscoveredDevice.NotificationType + ": " + e.DiscoveredDevice.DescriptionLocation);
+                Debug.WriteLine("AVAIL DEVICE EVENT --> " + e.DiscoveredDevice.NotificationType + ": " + e.DiscoveredDevice.DescriptionLocation);
             }
             else
             {
                 var foundDevice = e.DiscoveredDevice;
-                Debug.WriteLine("Found " + foundDevice.Usn + " at " + foundDevice.DescriptionLocation.ToString());
+                Debug.WriteLine("New DEVICE FOUND: " + foundDevice.Usn + " at " + foundDevice.DescriptionLocation.ToString());
 
                 // Can retrieve the full device description easily though.
                 var fullDevice = await foundDevice.GetDeviceInfo().ConfigureAwait(false);
                 Debug.WriteLine(fullDevice.FriendlyName);
-                Debug.WriteLine("");
 
                 var result = await RenderDeviceAsync(foundDevice.DescriptionLocation.ToString()).ConfigureAwait(false);
                 if (result != null && DeviceFound != null)
                     DeviceFound(this, result);
             }
+        }
+
+        private void DeviceLocator_DeviceUnavailable(object sender, DeviceUnavailableEventArgs e)
+        {
+            Debug.WriteLine("UNAVAIL DEVICE EVENT --> " + e.DiscoveredDevice.NotificationType + ": " + e.DiscoveredDevice.DescriptionLocation);
         }
 
         /// <summary>
@@ -75,19 +85,16 @@ namespace Musiccast.Service
         {
             try
             {
-                var serializer = new XmlSerializer(typeof(DLNADescription));
-
-                var client = _httpClientFactory.CreateClient();
+                XmlSerializer reader = new XmlSerializer(typeof(DLNADescription));
+                using (var client = _httpClientFactory.CreateClient())
                 {
-                    using (var stream = await client.GetStreamAsync(location).ConfigureAwait(false))
-                    {
-                        using (XmlReader reader = XmlReader.Create(stream))
-                        {
-                            var device = (DLNADescription)serializer.Deserialize(reader);
-                            device.Location = location;
-                            return (device);
-                        }
-                    }
+                    var stream = await client.GetStreamAsync(location).ConfigureAwait(false);
+                    StreamReader file = new StreamReader(stream);
+                    DLNADescription device = (DLNADescription)reader.Deserialize(file);
+                    file.Close();
+
+                    device.Location = location;
+                    return (device);
                 }
             }
             catch (Exception e)
@@ -97,10 +104,25 @@ namespace Musiccast.Service
             }
         }
 
+        // Dispose() calls Dispose(true)
         public void Dispose()
         {
-            if (deviceLocator != null && !deviceLocator.IsDisposed)
-                deviceLocator.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        // The bulk of the clean-up code is implemented in Dispose(bool)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed) return;
+
+            if (disposing)
+            {
+                if (deviceLocator != null && !deviceLocator.IsDisposed)
+                    deviceLocator.Dispose();
+            }
+
+            isDisposed = true;
         }
     }
 }
