@@ -70,6 +70,8 @@ namespace Musiccast.Service
         /// The set volume
         /// </summary>
         private const string SetVolume = "/YamahaExtendedControl/v1/{0}/setVolume?volume={1}";
+
+        private const string SetInput = "/YamahaExtendedControl/v1/{0}/setInput?input={1}";
         /// <summary>
         /// The recall tuner preset
         /// </summary>
@@ -237,7 +239,7 @@ namespace Musiccast.Service
             var client = _httpClientFactory.CreateClient();
             {
                 AddClientHeaders(client);
-                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(Status, zoneName))).ConfigureAwait(false);
+                var result = await client.GetStringAsync(new Uri(baseUri, string.Format(SetInput, zoneName, id))).ConfigureAwait(false);
                 return result != null && JsonConvert.DeserializeObject<SetDevicePropertyResponse>(result).response_code == 0;
             }
         }
@@ -453,14 +455,7 @@ namespace Musiccast.Service
                     var tuner = await this.GetTunerPlayInfoAsync(baseUri).ConfigureAwait(false);
                     temp.NowPlayingInformation = tuner.NowPlayingSummary;
                 }
-
-                if (status.input == Inputs.net_radio)
-                {
-                    var tuner = await this.GetNetRadioInfoAsync(baseUri).ConfigureAwait(false);
-                    temp.NowPlayingInformation = tuner.NowPlayingSummary;
-                }
-
-                if (status.input == Inputs.mc_link)
+                else
                 {
                     var tuner = await this.GetNetRadioInfoAsync(baseUri).ConfigureAwait(false);
                     temp.NowPlayingInformation = tuner.NowPlayingSummary;

@@ -54,10 +54,11 @@ namespace App4
             var services = new ServiceCollection();
             services.AddHttpClient();
             services.AddLogging();
-            services.AddTransient<MusicCastService>();
+            services.AddSingleton<MusicCastService>();
 
             var folder = ApplicationData.Current.LocalFolder;
             var fullPath = $"{folder.Path}\\Logs\\App.log";
+
             ServiceProvider = services.BuildServiceProvider();
             ServiceProvider.GetService<ILoggerFactory>().AddFile(fullPath, LogLevel.Error, null, false, retainedFileCountLimit: 2);
 

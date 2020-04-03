@@ -273,6 +273,7 @@ namespace Musiccast.Helpers
 
             return new Input()
             {
+                Id = input,
                 Icon = icon,
                 Name = name
             };

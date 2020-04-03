@@ -368,10 +368,13 @@ namespace App4.ViewModels
             try
             {
                 var devices = await ApplicationData.Current.LocalSettings.ReadAsync<List<Device>>(DevicesKey).ConfigureAwait(false);
-                foreach (var item in devices)
-                {
-                    item.IsAlive = false;
-                }
+
+                if(devices != null)
+                    foreach (var item in devices)
+                    {
+                        item.IsAlive = false;
+                    }
+
                 return devices ?? new List<Device>();
             }
             catch (Exception)

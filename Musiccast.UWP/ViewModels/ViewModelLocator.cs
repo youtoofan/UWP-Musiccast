@@ -16,7 +16,6 @@ namespace App4.ViewModels
         public ViewModelLocator()
         {
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
-
             SimpleIoc.Default.Register(() => new NavigationServiceEx());
             Register<ZonesViewModel, ZonesPage>();
             Register<SettingsViewModel, SettingsPage>();

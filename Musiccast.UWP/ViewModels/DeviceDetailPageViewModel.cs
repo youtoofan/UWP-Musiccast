@@ -106,6 +106,8 @@ namespace App4.ViewModels
 
             this.navigationService = navigationService;
             this.service = App.ServiceProvider.GetService(typeof(MusicCastService)) as MusicCastService;
+
+
             navigationService.Navigated += NavigationService_NavigatedAsync;
         }
 
@@ -124,6 +126,8 @@ namespace App4.ViewModels
                     this.Device.VolumeChanged -= Device_VolumeChanged;
                 }
 
+                App.UDPNotificationReceived -= UDPListener_DeviceNotificationRecievedAsync;
+
                 return;
             }
 
@@ -139,8 +143,12 @@ namespace App4.ViewModels
             this.Device.PowerToggled += Device_PowerToggledAsync;
             this.Device.VolumeChanged += Device_VolumeChanged;
 
+            App.UDPNotificationReceived += UDPListener_DeviceNotificationRecievedAsync;
+
             await RefreshDeviceAsync();
         }
+
+        
 
         /// <summary>
         /// Devices the volume changed.
@@ -191,7 +199,27 @@ namespace App4.ViewModels
         {
             await service.ChangeDeviceInputAsync(new Uri(Device.BaseUri), Device.Zone, item.Id).ConfigureAwait(false);
         }
-        
+
+        private async void UDPListener_DeviceNotificationRecievedAsync(object sender, string deviceId)
+        {
+            if (!this.Device.Id.Equals(deviceId))
+                return;
+
+            var refresh = await service.RefreshDeviceAsync(Device.Id, new Uri(Device.BaseUri), Device.Zone);
+
+            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+            {
+                Device.Power = refresh.Power;
+                Device.Input = refresh.Input.ToString();
+                Device.SubTitle = refresh.NowPlayingInformation;
+                Device.Volume = refresh.Volume;
+                Device.MaxVolume = refresh.MaxVolume;
+                Device.ImageUri = UriHelper.ResolvePath(refresh.Location, refresh.ImagePath);
+                Device.ImageSize = refresh.ImageSize;
+                Device.FriendlyName = string.IsNullOrEmpty(refresh.FriendlyName) ? Device.FriendlyName : refresh.FriendlyName;
+            });
+        }
+
         /// <summary>
         /// Refreshes the device asynchronous.
         /// </summary>
