@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:genTemplate="http://schemas.microsoft.com/appx/developer/windowsTemplateStudio" IgnorableNamespaces="uap mp genTemplate">
-  <Identity Name="63231GhostInTheMachine.Musiccast10" Publisher="CN=430F4AFF-6449-4CA8-9BE9-F70AFBEAF59B" Version="1.0.24.0" />
+  <Identity Name="63231GhostInTheMachine.Musiccast10" Publisher="CN=430F4AFF-6449-4CA8-9BE9-F70AFBEAF59B" Version="1.0.28.0" />
   <mp:PhoneIdentity PhoneProductId="98bb14e3-e42b-460f-aae0-f735d125e871" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Musiccast 10</DisplayName>

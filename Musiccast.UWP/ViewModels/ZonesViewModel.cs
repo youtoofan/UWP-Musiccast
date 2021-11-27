@@ -25,7 +25,7 @@ namespace App4.ViewModels
     /// 
     /// </summary>
     /// <seealso cref="GalaSoft.MvvmLight.ViewModelBase" />
-    public class ZonesViewModel : ViewModelBase
+    public class ZonesViewModel : ViewModelBase, IDisposable
     {
         private DispatcherQueue dispatcherQueue = DispatcherQueue.GetForCurrentThread();
         /// <summary>
@@ -92,6 +92,7 @@ namespace App4.ViewModels
         }
 
         private bool _isLoading;
+        private bool disposedValue;
 
         public bool IsLoading
         {
@@ -106,8 +107,10 @@ namespace App4.ViewModels
         public ZonesViewModel(NavigationServiceEx navigationService)
         {
             Devices = new ObservableCollection<Device>();
-            this.navigationService = navigationService;
 
+            _ = InitAsync();
+
+            this.navigationService = navigationService;
             this.logger = App.ServiceProvider.GetService(typeof(ILogger<ZonesViewModel>)) as ILogger<ZonesViewModel>;
             this.service = App.ServiceProvider.GetService(typeof(MusicCastService)) as MusicCastService;
             this.service.DeviceFound += Service_DeviceFoundAsync;
@@ -257,20 +260,6 @@ namespace App4.ViewModels
         }
 
         /// <summary>
-        /// Destroys the asynchronous.
-        /// </summary>
-        /// <returns></returns>
-        public async Task DestroyAsync()
-        {
-            await dispatcherQueue.EnqueueAsync(() =>
-            {
-                Devices.Clear();
-            });
-
-            App.UDPNotificationReceived -= UDPListener_DeviceNotificationRecievedAsync;
-        }
-
-        /// <summary>
         /// Unregisters this instance from the Messenger class.
         /// <para>To cleanup additional resources, override this method, clean
         /// up and then call base.Cleanup().</para>
@@ -413,6 +402,27 @@ namespace App4.ViewModels
             {
                 logger.LogError(e, "Save devices to storage failed");
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    if (service != null)
+                        service.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

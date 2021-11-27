@@ -91,7 +91,7 @@ namespace Musiccast.Service
         {
             return new MusicCastDevice()
             {
-                Id = info.device_id,
+                Id = device.device.UDN,
                 BaseUri = baseUri,
                 Zone = zone,
                 ModelName = info.model_name,
@@ -133,6 +133,8 @@ namespace Musiccast.Service
                 return JsonConvert.DeserializeObject<GetNameTextResponse>(result);
             }
         }
+
+        
 
         private async Task<GetDeviceInfoResponse> GetDeviceInfo(Uri baseUri)
         {
@@ -213,6 +215,11 @@ namespace Musiccast.Service
         #endregion
 
         #region public 
+
+        public async Task TriggerDLNAMessageForDeviceAsync(string id)
+        {
+            await service.ScanNetworkForDeviceAsync(id);
+        }
 
         public async Task LoadRoomsAsync()
         {

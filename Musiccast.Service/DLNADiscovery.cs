@@ -21,16 +21,20 @@ namespace Musiccast.Service
             this.deviceLocator = new SsdpDeviceLocator(localIp);
             deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailableAsync;
             deviceLocator.DeviceUnavailable += DeviceLocator_DeviceUnavailable;
+            deviceLocator.StartListeningForNotifications();
         }
 
         public async Task ScanNetworkAsync()
         {
             if (deviceLocator.IsSearching)
                 return;
-           
-            deviceLocator.StartListeningForNotifications();
-            //deviceLocator.NotificationFilter = "urn:schemas-upnp-org:service:ConnectionManager:1";
-            await deviceLocator.SearchAsync(TimeSpan.FromSeconds(5));
+            
+            await deviceLocator.SearchAsync("urn:schemas-upnp-org:device:MediaRenderer:1", TimeSpan.FromSeconds(5));
+        }
+
+        public async Task ScanNetworkForDeviceAsync(string id)
+        {
+            await deviceLocator.SearchAsync($"uuid:{id}", TimeSpan.FromMilliseconds(100));
         }
 
         private async void DeviceLocator_DeviceAvailableAsync(object sender, DeviceAvailableEventArgs e)
@@ -104,5 +108,7 @@ namespace Musiccast.Service
 
             isDisposed = true;
         }
+
+        
     }
 }
