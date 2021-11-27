@@ -209,6 +209,8 @@ namespace App4.ViewModels
                 return;
 
             var refresh = await service.RefreshDeviceAsync(Device.Id, new Uri(Device.BaseUri), Device.Zone);
+            if (refresh == null)
+                return;
 
             await dispatcherQueue.EnqueueAsync(() =>
             {
@@ -239,6 +241,9 @@ namespace App4.ViewModels
             {
 
                 var refresh = service.RefreshDeviceAsync(Device.Id, new Uri(Device.BaseUri), Device.Zone);
+                if (refresh == null)
+                    return;
+
                 var feat = service.GetFeatures(new Uri(Device.BaseUri));
                 var dab = service.GetTunerPresets(new Uri(Device.BaseUri), "dab");
                 var fm = service.GetTunerPresets(new Uri(Device.BaseUri), "fm");

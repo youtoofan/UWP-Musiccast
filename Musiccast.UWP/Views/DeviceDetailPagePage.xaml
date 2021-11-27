@@ -13,7 +13,9 @@
     <Page.Resources>
         <helpers:UriToBitmapConverter x:Name="uriToBitmapConverter"/>
         <helpers:BooleanToColorConverter x:Name="booleanToColorConverter"/>
+        <helpers:BooleanToButtonBorderColorConverter x:Name="booleanToButtonBorderColorConverter"/>
         <helpers:BooleanToOpacityConverter x:Name="booleanToOpacityConverter"/>
+        <helpers:InverseBooleanToVisibilityConverter x:Name="inverseBooleanToVisibilityConverter" />
         <DataTemplate x:Name="InputListViewTemplate" x:DataType="local:Input">
             <Grid HorizontalAlignment="Stretch" Padding="{StaticResource FlyoutContentThemePadding}" Background="White">
                 <Grid.RowDefinitions>
@@ -36,12 +38,14 @@
         </DataTemplate>
     </Page.Resources>
     <Grid
+        
         x:Name="ContentArea">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <TextBlock Padding="36" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.RowSpan="3" Text="Device is switched off. Use the switch in the top right to power it on" Style="{StaticResource TitleTextBlockStyle}" Visibility="{x:Bind ViewModel.Device.IsOn, Converter={StaticResource inverseBooleanToVisibilityConverter }, Mode=OneWay}"/>
         <Grid Grid.Row="0" VerticalAlignment="Center" Margin="{StaticResource MediumLeftTopRightBottomMargin}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
@@ -52,13 +56,19 @@
                 <SymbolIcon Symbol="Home"/>
             </Button>
             <TextBlock Grid.Column="1" HorizontalAlignment="Center" Text="{x:Bind ViewModel.Device.FriendlyName, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}"/>
-            <ToggleButton Grid.Column="2" HorizontalAlignment="Right" Command="{x:Bind ViewModel.Device.TogglePowerCommand}" IsChecked="{x:Bind ViewModel.Device.IsOn, Mode=OneWay}">
+            <ToggleButton Grid.Column="2"
+                          BorderThickness="2"
+                          BorderBrush="{x:Bind ViewModel.Device.IsOn, Converter={StaticResource booleanToButtonBorderColorConverter}, Mode=OneWay}"
+                          HorizontalAlignment="Right"
+                          Command="{x:Bind ViewModel.Device.TogglePowerCommand}"
+                          IsChecked="{x:Bind ViewModel.Device.IsOn, Mode=OneWay}">
                 <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ViewModel.Device.IsOnString, Mode=OneWay}"/>
             </ToggleButton>
         </Grid>
         <ScrollViewer Grid.Row="1">
-            
-            <Grid  VerticalAlignment="Stretch"
+            <ContentControl  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" IsEnabled="{x:Bind ViewModel.Device.IsOn, Mode=OneWay}" Background="Transparent">
+                <Grid 
+              IsTapEnabled="{x:Bind ViewModel.Device.IsOn, Mode=OneWay}"
               Opacity="{x:Bind ViewModel.Device.IsOn,Converter={StaticResource booleanToOpacityConverter}, Mode=OneWay}"
               Padding="{StaticResource FlyoutContentThemePadding}"
               Background="{x:Bind ViewModel.Device.IsAlive, Converter={StaticResource booleanToColorConverter}, Mode=OneWay}"
@@ -86,6 +96,7 @@
                     </controls:AdaptiveGridView>
                 </StackPanel>
             </Grid>
+            </ContentControl>
         </ScrollViewer>
         
         <Grid Grid.Row="2">

@@ -91,8 +91,6 @@ namespace App4.ViewModels
             }
         }
 
-        
-
         private bool _isLoading;
 
         public bool IsLoading
@@ -109,8 +107,10 @@ namespace App4.ViewModels
         {
             Devices = new ObservableCollection<Device>();
             this.navigationService = navigationService;
+
             this.logger = App.ServiceProvider.GetService(typeof(ILogger<ZonesViewModel>)) as ILogger<ZonesViewModel>;
             this.service = App.ServiceProvider.GetService(typeof(MusicCastService)) as MusicCastService;
+            this.service.DeviceFound += Service_DeviceFoundAsync;
         }
 
         /// <summary>
@@ -129,6 +129,8 @@ namespace App4.ViewModels
             foreach (var existingDevice in existingDevices)
             {
                 var updatedDevice = await service.RefreshDeviceAsync(existingDevice.Id, new Uri(existingDevice.BaseUri), existingDevice.Zone).ConfigureAwait(false);
+                if (updatedDevice == null)
+                    continue;
 
                 await dispatcherQueue.EnqueueAsync(() =>
                 {
@@ -147,7 +149,7 @@ namespace App4.ViewModels
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine(ex, "Exception");
+                        logger.LogError(ex, "Exception");
                     }
                     finally
                     {
@@ -178,6 +180,8 @@ namespace App4.ViewModels
                         continue;
 
                     var updatedDevice = await service.RefreshDeviceAsync(e.Id, new Uri(e.BaseUri), e.Zone).ConfigureAwait(false);
+                    if (updatedDevice == null)
+                        continue;
 
                     await dispatcherQueue.EnqueueAsync(() =>
                     {
@@ -307,11 +311,21 @@ namespace App4.ViewModels
         /// <returns></returns>
         public async Task FindNewDevices()
         {
-            await dispatcherQueue.EnqueueAsync(() =>
+            await dispatcherQueue.EnqueueAsync(async () =>
             {
-                IsLoading = true;
-                service.DeviceFound += Service_DeviceFoundAsync;
-                service.LoadRooms();
+                try
+                {
+                    IsLoading = true;
+                    await service.LoadRoomsAsync();
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Finding devices failed.");
+                }
+                finally
+                {
+                    IsLoading = false;
+                }
             });
         }
 
@@ -338,7 +352,7 @@ namespace App4.ViewModels
             {
                 IsLoading = false;
 
-                if (Devices.Where(w => w != null).Select(s => s.FriendlyName).Contains(device.FriendlyName))
+                if (Devices == null || Devices.Where(w => w != null).Select(s => s.FriendlyName).Contains(device.FriendlyName))
                     return;
 
                 Devices.Add(new Device()
@@ -355,6 +369,7 @@ namespace App4.ViewModels
                     IsAlive = true
                 });
             });
+
             await SaveDevicesInStorageAsync(Devices.ToList()).ConfigureAwait(false);
         }
 
@@ -362,7 +377,7 @@ namespace App4.ViewModels
         /// Loads the devices from storage asynchronous.
         /// </summary>
         /// <returns></returns>
-        private static async Task<List<Device>> LoadDevicesFromStorageAsync()
+        private async Task<List<Device>> LoadDevicesFromStorageAsync()
         {
             try
             {
@@ -376,8 +391,9 @@ namespace App4.ViewModels
 
                 return devices ?? new List<Device>();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                logger.LogError(e, "Loading devices from storage failed");
                 return new List<Device>(0);
             }
         }
@@ -387,9 +403,16 @@ namespace App4.ViewModels
         /// </summary>
         /// <param name="devices">The devices.</param>
         /// <returns></returns>
-        private static async Task SaveDevicesInStorageAsync(List<Device> devices)
+        private async Task SaveDevicesInStorageAsync(List<Device> devices)
         {
-            await ApplicationData.Current.LocalSettings.SaveAsync(DevicesKey, devices).ConfigureAwait(false);
+            try
+            {
+                await ApplicationData.Current.LocalSettings.SaveAsync(DevicesKey, devices).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Save devices to storage failed");
+            }
         }
     }
 }

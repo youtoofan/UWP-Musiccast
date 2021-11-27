@@ -10,7 +10,7 @@
     xmlns:local="using:Musiccast.Models"
     xmlns:lottie="using:Microsoft.Toolkit.Uwp.UI.Lottie"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:winui="using:Microsoft.UI.Xaml.Controls"
+    xmlns:winui="using:Microsoft.UI.Xaml.Controls" xmlns:UI="using:VungleSDK.UI"
     DataContext="{Binding ZonesViewModel, Source={StaticResource Locator}}"
     Style="{StaticResource PageStyle}"
     mc:Ignorable="d">
@@ -21,7 +21,7 @@
             TargetType="TextBlock">
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Margin" Value="5,3" />
+            <Setter Property="Margin" Value="5,3,5,3" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
         <helpers:UriToBitmapConverter x:Name="uriToBitmapConverter" />
@@ -30,6 +30,7 @@
         <helpers:ObjectToDeviceConverter x:Name="objectToDeviceConverter" />
         <helpers:BooleanToVisibilityConverter x:Name="booleanToVisibilityConverter" />
         <helpers:InverseBooleanToVisibilityConverter x:Name="inverseBooleanToVisibilityConverter" />
+        <helpers:IntToVisibilityConverter x:Name="intToVisibilityConverter" />
 
         <DataTemplate x:Name="ContactListViewTemplate" x:DataType="local:Device">
             <Grid
@@ -107,6 +108,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -140,6 +142,11 @@
                 <SymbolIcon Symbol="Add" />
             </Button>
         </Grid>
+        <TextBlock Grid.Row="1" Style="{StaticResource TitleTextBlockStyle}" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{x:Bind ViewModel.Devices.Count, Converter={StaticResource intToVisibilityConverter }, Mode=OneWay}" Padding="36">
+            <Run Text="Press the plus button on the top right to start searching for devices."/>
+            <Run Text=""/>
+            <Run Text="Make sure you are connected to your home network and your devices are powered on."/>
+        </TextBlock>
         <controls:AdaptiveGridView
             Name="AdaptiveGridViewControl"
             Padding="4"
@@ -179,5 +186,15 @@
                 </StackPanel>
             </ContentControl>
         </controls:Loading>
+        <UI:VungleAdControl
+            Grid.Row="2"
+            x:Name="vungleBannerControl" AutomationProperties.AutomationId="vungleBannerControl"
+            IsBannerAd="True"
+            AutoRun="True"
+            Width="728" 
+            Height="90"
+            AppID="61a256d5b253f3e00ba28fc7"
+            Placement="DEFAULT-2391597">
+        </UI:VungleAdControl>
     </Grid>
 </Page>

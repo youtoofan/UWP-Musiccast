@@ -13,6 +13,8 @@ namespace Musiccast.Helpers
     {
         public event EventHandler<string> DeviceNotificationRecieved;
         const string _ssdpMulticastIp = "239.255.255.250";
+        const string _msearchMediaRenderer = "M-SEARCH * HTTP/1.1\r\nMX: 1\r\nHOST: 239.255.255.250:1900\r\nMAN: \"ssdp:discover\"\r\nST: urn:schemas-upnp-org:device:";
+        const string _msearchOther = "M-SEARCH * HTTP/1.1\r\nHost: 239.255.255.250:1900\r\nContent-Length: 0\r\nMAN: \"ssdp:discover\"\r\nMX: 1\r\nST: urn:schemas-upnp-org:device:";
         const int _endpointPort = 1900;
         private bool listening = false;
         private UdpClient listener;

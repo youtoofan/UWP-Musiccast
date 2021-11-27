@@ -13,41 +13,26 @@ namespace Musiccast.Service
         private bool isDisposed;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly SsdpDeviceLocator deviceLocator;
-
         public event EventHandler<DLNADescription> DeviceFound;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DLNADiscovery"/> class.
-        /// </summary>
-        /// <param name="httpClientFactory">The HTTP client factory.</param>
         public DLNADiscovery(IHttpClientFactory httpClientFactory, string localIp)
         {
             this._httpClientFactory = httpClientFactory;
             this.deviceLocator = new SsdpDeviceLocator(localIp);
+            deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailableAsync;
+            deviceLocator.DeviceUnavailable += DeviceLocator_DeviceUnavailable;
         }
 
-        /// <summary>
-        /// Scans the network asynchronous.
-        /// </summary>
-        /// 
-        /// <returns></returns>
-        public void ScanNetwork()
+        public async Task ScanNetworkAsync()
         {
             if (deviceLocator.IsSearching)
                 return;
-
-            deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailableAsync;
-            deviceLocator.DeviceUnavailable += DeviceLocator_DeviceUnavailable;
+           
             deviceLocator.StartListeningForNotifications();
-            deviceLocator.NotificationFilter = "urn:schemas-upnp-org:service:ConnectionManager:1";
-            deviceLocator.SearchAsync(TimeSpan.FromSeconds(30));
+            //deviceLocator.NotificationFilter = "urn:schemas-upnp-org:service:ConnectionManager:1";
+            await deviceLocator.SearchAsync(TimeSpan.FromSeconds(5));
         }
 
-        /// <summary>
-        /// Handles the DeviceAvailable event of the DeviceLocator control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="DeviceAvailableEventArgs"/> instance containing the event data.</param>
         private async void DeviceLocator_DeviceAvailableAsync(object sender, DeviceAvailableEventArgs e)
         {
             if (!e.IsNewlyDiscovered)
@@ -74,25 +59,22 @@ namespace Musiccast.Service
             Debug.WriteLine($"UNAVAIL DEVICE EVENT --> {e.DiscoveredDevice.NotificationType}: {e.DiscoveredDevice.DescriptionLocation}");
         }
 
-        /// <summary>
-        /// Renders the device asynchronous.
-        /// </summary>
-        /// <param name="location">The location.</param>
-        /// <returns></returns>
         private async Task<DLNADescription> RenderDeviceAsync(string location)
         {
             try
             {
-                XmlSerializer reader = new XmlSerializer(typeof(DLNADescription));
+                var reader = new XmlSerializer(typeof(DLNADescription));
                 using (var client = _httpClientFactory.CreateClient())
                 {
-                    var stream = await client.GetStreamAsync(location).ConfigureAwait(false);
-                    StreamReader file = new StreamReader(stream);
-                    DLNADescription device = (DLNADescription)reader.Deserialize(file);
-                    file.Close();
-
-                    device.Location = location;
-                    return (device);
+                    using (var stream = await client.GetStreamAsync(location).ConfigureAwait(false))
+                    {
+                        using (StreamReader file = new StreamReader(stream))
+                        {
+                            var device = (DLNADescription)reader.Deserialize(file);
+                            device.Location = location;
+                            return (device);
+                        }
+                    }
                 }
             }
             catch (Exception e)
