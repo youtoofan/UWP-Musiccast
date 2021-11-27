@@ -15,70 +15,26 @@ namespace Musiccast.Service
     public class MusicCastService : IDisposable
     {
         private bool isDisposed;
-        /// <summary>
-        /// Occurs when [device found].
-        /// </summary>
         public event EventHandler<MusicCastDevice> DeviceFound;
 
-        /// <summary>
-        /// The information
-        /// </summary>
         private const string Info = "/YamahaExtendedControl/v1/system/getDeviceInfo";
-        /// <summary>
-        /// The features
-        /// </summary>
         private const string Features = "/YamahaExtendedControl/v1/system/getFeatures";
-
         private const string NetworkStatus = "/YamahaExtendedControl/v1/system/getNetworkStatus";
 
-        /// <summary>
-        /// The status
-        /// </summary>
         private const string Status = "/YamahaExtendedControl/v2/{0}/getStatus";
-
         private const string Distribution = "YamahaExtendedControl/v1/dist/getDistributionInfo";
 
-        /// <summary>
-        /// The names
-        /// </summary>
         private const string Names = "/YamahaExtendedControl/v1/system/getNameText?id={0}";
-        /// <summary>
-        /// The location information
-        /// </summary>
         private const string LocationInfo = "/YamahaExtendedControl/v1/system/getLocationInfo";
-        /// <summary>
-        /// The toggle power
-        /// </summary>
         private const string TogglePower = "/YamahaExtendedControl/v1/{0}/setPower?power=toggle";
-        /// <summary>
-        /// The tuner play information
-        /// </summary>
         private const string TunerPlayInfo = "/YamahaExtendedControl/v2/tuner/getPlayInfo";
-        /// <summary>
-        /// The tuner presets
-        /// </summary>
         private const string TunerPresets = "/YamahaExtendedControl/v1/tuner/getPresetInfo?band={0}";
-        /// <summary>
-        /// The net usb presets
-        /// </summary>
         private const string NetUsbPresets = "/YamahaExtendedControl/v1/netusb/getPresetInfo";
-        /// <summary>
-        /// The net radio play information
-        /// </summary>
         private const string NetRadioPlayInfo = "/YamahaExtendedControl/v1/netusb/getPlayInfo";
-        /// <summary>
-        /// The set volume
-        /// </summary>
         private const string SetVolume = "/YamahaExtendedControl/v1/{0}/setVolume?volume={1}";
 
         private const string SetInput = "/YamahaExtendedControl/v1/{0}/setInput?input={1}";
-        /// <summary>
-        /// The recall tuner preset
-        /// </summary>
         private const string RecallTunerPreset = "/YamahaExtendedControl/v1/tuner/recallPreset?zone={0}&band={1}&num={2}";
-        /// <summary>
-        /// The recall usb preset
-        /// </summary>
         private const string RecallUsbPreset = "/YamahaExtendedControl/v1/netusb/recallPreset?zone={0}&num={1}";
         private readonly IHttpClientFactory _httpClientFactory;
         private DLNADiscovery service;
@@ -114,15 +70,8 @@ namespace Musiccast.Service
             foreach (var zone in location.zone_list.ValidZones)
             {
                 var status = await this.GetDeviceStatusAsync(baseUri, zone).ConfigureAwait(false);
-                var friendlyName = distributionInfo.client_list.Count() > 0 ? distributionInfo.group_name : string.Empty;
-
-                if (string.IsNullOrEmpty(friendlyName))
-                {
-                    var temp = await this.GetDeviceZoneFriendlyNameAsync(baseUri, zone).ConfigureAwait(false);
-                    friendlyName = temp.text;
-                }
-
-                var convertedModel = ConvertApiDeviceToDevice(baseUri, zone, friendlyName, device, status, info);
+                var friendlyName = await this.GetDeviceZoneFriendlyNameAsync(baseUri, zone).ConfigureAwait(false);
+                var convertedModel = ConvertApiDeviceToDevice(baseUri, zone, friendlyName.text, device, status, info);
 
                 if (status.input == Inputs.tuner)
                 {
@@ -461,10 +410,8 @@ namespace Musiccast.Service
                     temp.NowPlayingInformation = tuner.NowPlayingSummary;
                 }
 
-                if (distributionInfo.client_list.Count > 0 && !string.IsNullOrEmpty(distributionInfo.group_name))
-                {
-                    temp.FriendlyName = distributionInfo.group_name;
-                }
+                var friendlyName = await this.GetDeviceZoneFriendlyNameAsync(baseUri, zone).ConfigureAwait(false);
+                temp.FriendlyName = friendlyName.text;
 
                 return temp;
             }

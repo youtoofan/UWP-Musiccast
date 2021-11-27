@@ -122,36 +122,39 @@ namespace App4.ViewModels
         {
             logger.LogInformation("Listening");
 
-            var existingDevice = Devices.FirstOrDefault(w => w.Id.Equals(deviceId));
-            if (existingDevice == null)
+            var existingDevices = Devices.Where(w => w.Id.Equals(deviceId));
+            if (existingDevices == null || existingDevices.Count() <= 0)
                 return;
 
-            var updatedDevice = await service.RefreshDeviceAsync(existingDevice.Id, new Uri(existingDevice.BaseUri), existingDevice.Zone).ConfigureAwait(false);
-
-            await dispatcherQueue.EnqueueAsync(() =>
+            foreach (var existingDevice in existingDevices)
             {
-                try
-                {
-                    existingDevice.Power = updatedDevice.Power;
-                    existingDevice.Input = updatedDevice.Input.ToString();
-                    existingDevice.SubTitle = updatedDevice.NowPlayingInformation;
-                    existingDevice.IsAlive = true;
-                    existingDevice.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
-                    existingDevice.ImageSize = existingDevice.ImageSize;
-                    existingDevice.FriendlyName = string.IsNullOrEmpty(updatedDevice.FriendlyName) ? existingDevice.FriendlyName : updatedDevice.FriendlyName;
+                var updatedDevice = await service.RefreshDeviceAsync(existingDevice.Id, new Uri(existingDevice.BaseUri), existingDevice.Zone).ConfigureAwait(false);
 
-                    if (string.IsNullOrEmpty(existingDevice.FriendlyName))
-                        existingDevice.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
-                }
-                catch (Exception ex)
+                await dispatcherQueue.EnqueueAsync(() =>
                 {
-                    Debug.WriteLine(ex, "Exception");
-                }
-                finally
-                {
-                    IsLoading = false;
-                }
-            });
+                    try
+                    {
+                        existingDevice.Power = updatedDevice.Power;
+                        existingDevice.Input = updatedDevice.Input.ToString();
+                        existingDevice.SubTitle = updatedDevice.NowPlayingInformation;
+                        existingDevice.IsAlive = true;
+                        existingDevice.ImageUri = UriHelper.ResolvePath(updatedDevice.Location, updatedDevice.ImagePath);
+                        existingDevice.ImageSize = existingDevice.ImageSize;
+                        existingDevice.FriendlyName = string.IsNullOrEmpty(updatedDevice.FriendlyName) ? existingDevice.FriendlyName : updatedDevice.FriendlyName;
+
+                        if (string.IsNullOrEmpty(existingDevice.FriendlyName))
+                            existingDevice.FriendlyName = ResourceHelper.GetString("DeviceName_Unknown");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex, "Exception");
+                    }
+                    finally
+                    {
+                        IsLoading = false;
+                    }
+                });
+            }
         }
 
         /// <summary>
@@ -335,7 +338,7 @@ namespace App4.ViewModels
             {
                 IsLoading = false;
 
-                if (Devices.Where(w => w != null).Select(s => s.Id).Contains(device.Id))
+                if (Devices.Where(w => w != null).Select(s => s.FriendlyName).Contains(device.FriendlyName))
                     return;
 
                 Devices.Add(new Device()
