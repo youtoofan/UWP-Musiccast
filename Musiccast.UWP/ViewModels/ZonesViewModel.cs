@@ -108,12 +108,12 @@ namespace App4.ViewModels
         {
             Devices = new ObservableCollection<Device>();
 
-            _ = InitAsync();
-
             this.navigationService = navigationService;
             this.logger = App.ServiceProvider.GetService(typeof(ILogger<ZonesViewModel>)) as ILogger<ZonesViewModel>;
             this.service = App.ServiceProvider.GetService(typeof(MusicCastService)) as MusicCastService;
             this.service.DeviceFound += Service_DeviceFoundAsync;
+
+            _ = InitAsync();
         }
 
         /// <summary>
