@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using App4.ViewModels;
 
 using Windows.UI.Xaml.Controls;

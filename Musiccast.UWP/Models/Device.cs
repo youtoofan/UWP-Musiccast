@@ -4,7 +4,6 @@ using Musiccast.Helpers;
 using Newtonsoft.Json;
 using System;
 using System.Windows.Input;
-using Windows.UI.Xaml.Media;
 
 namespace Musiccast.Models
 {

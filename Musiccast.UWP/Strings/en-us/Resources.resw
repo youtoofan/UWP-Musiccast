@@ -221,4 +221,7 @@
   <data name="SearchButtonInProgress.Content" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="DeviceDetailPage_Volume_Settings.Header" xml:space="preserve">
+    <value>Volume settings</value>
+  </data>
 </root>

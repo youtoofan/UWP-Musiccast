@@ -6,10 +6,11 @@ using App4.Services;
 using App4.Views;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
-using Microsoft.Toolkit.Uwp.Helpers;
+using Microsoft.Toolkit.Uwp;
 using Musiccast.Helpers;
 using Musiccast.Models;
 using Musiccast.Service;
+using Windows.System;
 using Windows.UI.Xaml.Navigation;
 
 namespace App4.ViewModels
@@ -20,6 +21,8 @@ namespace App4.ViewModels
     /// <seealso cref="GalaSoft.MvvmLight.ViewModelBase" />
     public class DeviceDetailPageViewModel : ViewModelBase
     {
+        private DispatcherQueue dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
         /// <summary>
         /// The navigation service
         /// </summary>
@@ -207,7 +210,7 @@ namespace App4.ViewModels
 
             var refresh = await service.RefreshDeviceAsync(Device.Id, new Uri(Device.BaseUri), Device.Zone);
 
-            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+            await dispatcherQueue.EnqueueAsync(() =>
             {
                 Device.Power = refresh.Power;
                 Device.Input = refresh.Input.ToString();
@@ -255,7 +258,7 @@ namespace App4.ViewModels
                 var tunerPresetsFM = await fm;
                 var usbPresets = await usb;
 
-                await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+                await dispatcherQueue.EnqueueAsync(() =>
                 {
                     this.InputList.Clear();
                     this.FavoritesList.Clear();

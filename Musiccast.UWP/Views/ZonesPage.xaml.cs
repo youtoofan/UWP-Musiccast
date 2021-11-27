@@ -1,7 +1,5 @@
-﻿using System;
-
+﻿
 using App4.ViewModels;
-using Microsoft.Toolkit.Uwp.Helpers;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 

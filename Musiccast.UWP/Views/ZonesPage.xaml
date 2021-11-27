@@ -29,6 +29,7 @@
         <helpers:BooleanToOpacityConverter x:Name="booleanToOpacityConverter" />
         <helpers:ObjectToDeviceConverter x:Name="objectToDeviceConverter" />
         <helpers:BooleanToVisibilityConverter x:Name="booleanToVisibilityConverter" />
+        <helpers:InverseBooleanToVisibilityConverter x:Name="inverseBooleanToVisibilityConverter" />
 
         <DataTemplate x:Name="ContactListViewTemplate" x:DataType="local:Device">
             <Grid
@@ -73,20 +74,18 @@
                         Width="30"
                         Height="30"
                         BorderThickness="1,1,1,1">
-                        <winui:AnimatedVisualPlayer
-                            x:Name="LottiePlayer"
-                            AutoPlay="True"
-                            Visibility="{x:Bind IsOn, Converter={StaticResource booleanToVisibilityConverter}, Mode=OneWay}">
-                            <animatedvisuals:LottieAnim />
-                            <winui:AnimatedVisualPlayer.FallbackContent>
-                                <DataTemplate>
-                                    <SymbolIcon
-                                        HorizontalAlignment="Stretch"
-                                        VerticalAlignment="Stretch"
-                                        Symbol="MusicInfo" />
-                                </DataTemplate>
-                            </winui:AnimatedVisualPlayer.FallbackContent>
-                        </winui:AnimatedVisualPlayer>
+                        <Grid>
+                            <winui:AnimatedVisualPlayer
+                                x:Name="LottiePlayer"
+                                AutoPlay="True"
+                                Visibility="{x:Bind IsOn, Converter={StaticResource booleanToVisibilityConverter}, Mode=OneWay}">
+                                <animatedvisuals:LottieAnim />
+                            </winui:AnimatedVisualPlayer>
+                            <SymbolIcon
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                Symbol="MusicInfo" Visibility="{x:Bind IsOn, Converter={StaticResource inverseBooleanToVisibilityConverter}, Mode=OneWay}" />
+                        </Grid>
                     </Border>
                     <StackPanel Padding="{StaticResource TextControlThemePadding}" Orientation="Vertical">
                         <TextBlock
@@ -123,9 +122,10 @@
             </Grid.ColumnDefinitions>
             <Button
                 Grid.Column="0"
+                IsEnabled="False"
                 HorizontalAlignment="Left"
                 Background="Transparent">
-                <SymbolIcon Symbol="Link" />
+                <SymbolIcon Symbol="Link"/>
             </Button>
             <TextBlock
                 x:Uid="Zones_Header"
@@ -142,6 +142,7 @@
         </Grid>
         <controls:AdaptiveGridView
             Name="AdaptiveGridViewControl"
+            Padding="4"
             Grid.Row="1"
             DesiredWidth="500"
             IsItemClickEnabled="True"

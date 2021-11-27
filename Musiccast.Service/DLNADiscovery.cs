@@ -3,9 +3,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Serialization;
 
 namespace Musiccast.Service
@@ -41,7 +39,7 @@ namespace Musiccast.Service
             deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailableAsync;
             deviceLocator.DeviceUnavailable += DeviceLocator_DeviceUnavailable;
             deviceLocator.StartListeningForNotifications();
-            //deviceLocator.NotificationFilter = "urn:schemas-upnp-org:device:MediaRenderer:1";
+            deviceLocator.NotificationFilter = "urn:schemas-upnp-org:service:ConnectionManager:1";
             deviceLocator.SearchAsync(TimeSpan.FromSeconds(30));
         }
 
@@ -54,12 +52,12 @@ namespace Musiccast.Service
         {
             if (!e.IsNewlyDiscovered)
             {
-                Debug.WriteLine("AVAIL DEVICE EVENT --> " + e.DiscoveredDevice.NotificationType + ": " + e.DiscoveredDevice.DescriptionLocation);
+                Debug.WriteLine($"AVAIL DEVICE EVENT --> {e.DiscoveredDevice.NotificationType}: {e.DiscoveredDevice.DescriptionLocation}");
             }
             else
             {
                 var foundDevice = e.DiscoveredDevice;
-                Debug.WriteLine("New DEVICE FOUND: " + foundDevice.Usn + " at " + foundDevice.DescriptionLocation.ToString());
+                Debug.WriteLine($"New DEVICE FOUND: {foundDevice.Usn} at {foundDevice.DescriptionLocation.ToString()}");
 
                 // Can retrieve the full device description easily though.
                 var fullDevice = await foundDevice.GetDeviceInfo().ConfigureAwait(false);
@@ -73,7 +71,7 @@ namespace Musiccast.Service
 
         private void DeviceLocator_DeviceUnavailable(object sender, DeviceUnavailableEventArgs e)
         {
-            Debug.WriteLine("UNAVAIL DEVICE EVENT --> " + e.DiscoveredDevice.NotificationType + ": " + e.DiscoveredDevice.DescriptionLocation);
+            Debug.WriteLine($"UNAVAIL DEVICE EVENT --> {e.DiscoveredDevice.NotificationType}: {e.DiscoveredDevice.DescriptionLocation}");
         }
 
         /// <summary>

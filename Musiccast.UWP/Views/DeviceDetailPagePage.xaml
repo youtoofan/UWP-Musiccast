@@ -89,8 +89,11 @@
         </ScrollViewer>
         
         <Grid Grid.Row="2">
-            <controls:Expander x:Name="Expander2" VerticalAlignment="Top" Margin="0"
-                           Header="{x:Bind ViewModel.Device.FriendlyName, Mode=OneWay}"
+            <controls:Expander
+                           x:Name="Expander2"
+                           x:Uid="DeviceDetailPage_Volume_Settings"
+                           VerticalAlignment="Top" Margin="0"
+                           
                            HorizontalContentAlignment="Stretch"
                            VerticalContentAlignment="Bottom"
                            IsExpanded="False"
@@ -113,13 +116,13 @@
                        Text="{x:Bind ViewModel.Device.SubTitle, Mode=OneWay}"
                        Style="{StaticResource CaptionTextBlockStyle}"
                        />
-                    <!--<controls:ImageEx x:Name="ImageExControl1" Grid.Row="2"
+                    <controls:ImageEx x:Name="ImageExControl1" Grid.Row="2"
                                   IsCacheEnabled="True"
                                   Source="{x:Bind ViewModel.Device.ImageUri}"
                                   Stretch="UniformToFill"
                                   PlaceholderSource="/Assets/349516_400X400.jpg"
                                   Margin="{StaticResource MediumLeftTopRightBottomMargin}"
-                                      />-->
+                                      />
                     <Slider Value="{x:Bind ViewModel.Device.Volume, Mode=TwoWay}"
                             Minimum="0"
                             Maximum="{x:Bind ViewModel.Device.MaxVolume, Mode=OneWay}"

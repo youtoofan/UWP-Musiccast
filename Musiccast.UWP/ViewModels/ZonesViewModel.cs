@@ -4,25 +4,20 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using App4.Helpers;
 using App4.Services;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
-using GalaSoft.MvvmLight.Views;
 using Microsoft.Extensions.Logging;
-using Microsoft.Toolkit.Uwp.Helpers;
+using Microsoft.Toolkit.Uwp;
 using Musiccast.Helpers;
 using Musiccast.Model;
 using Musiccast.Models;
 using Musiccast.Service;
 using Windows.Storage;
-using Windows.System.Threading;
-using Windows.UI;
-using Windows.UI.Xaml.Media;
+using Windows.System;
 
 namespace App4.ViewModels
 {
@@ -32,6 +27,7 @@ namespace App4.ViewModels
     /// <seealso cref="GalaSoft.MvvmLight.ViewModelBase" />
     public class ZonesViewModel : ViewModelBase
     {
+        private DispatcherQueue dispatcherQueue = DispatcherQueue.GetForCurrentThread();
         /// <summary>
         /// The devices key
         /// </summary>
@@ -132,7 +128,7 @@ namespace App4.ViewModels
 
             var updatedDevice = await service.RefreshDeviceAsync(existingDevice.Id, new Uri(existingDevice.BaseUri), existingDevice.Zone).ConfigureAwait(false);
 
-            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+            await dispatcherQueue.EnqueueAsync(() =>
             {
                 try
                 {
@@ -180,7 +176,7 @@ namespace App4.ViewModels
 
                     var updatedDevice = await service.RefreshDeviceAsync(e.Id, new Uri(e.BaseUri), e.Zone).ConfigureAwait(false);
 
-                    await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+                    await dispatcherQueue.EnqueueAsync(() =>
                     {
                         try
                         {
@@ -236,7 +232,7 @@ namespace App4.ViewModels
 
             App.UDPNotificationReceived += UDPListener_DeviceNotificationRecievedAsync;
 
-            await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
+            await dispatcherQueue.EnqueueAsync(async () =>
             {
                 Devices.Clear();
 
@@ -259,7 +255,7 @@ namespace App4.ViewModels
         /// <returns></returns>
         public async Task DestroyAsync()
         {
-            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+            await dispatcherQueue.EnqueueAsync(() =>
             {
                 Devices.Clear();
             });
@@ -308,7 +304,7 @@ namespace App4.ViewModels
         /// <returns></returns>
         public async Task FindNewDevices()
         {
-            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+            await dispatcherQueue.EnqueueAsync(() =>
             {
                 IsLoading = true;
                 service.DeviceFound += Service_DeviceFoundAsync;
@@ -322,7 +318,7 @@ namespace App4.ViewModels
         /// <returns></returns>
         private async Task CancelFindNewDevices()
         {
-            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+            await dispatcherQueue.EnqueueAsync(() =>
             {
                 IsLoading = false;
             });
@@ -335,7 +331,7 @@ namespace App4.ViewModels
         /// <param name="device">The device.</param>
         private async void Service_DeviceFoundAsync(object sender, MusicCastDevice device)
         {
-            await DispatcherHelper.ExecuteOnUIThreadAsync(() =>
+            await dispatcherQueue.EnqueueAsync(() =>
             {
                 IsLoading = false;
 

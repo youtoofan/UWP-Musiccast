@@ -1,16 +1,13 @@
 ﻿using System;
 
 using App4.Services;
-using CommonServiceLocator;
 using GalaSoft.MvvmLight.Threading;
 using Windows.ApplicationModel.Activation;
 using Windows.UI.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using Musiccast.Service;
 using Windows.Storage;
-using App4.Helpers;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using Musiccast.Helpers;
 
 namespace App4

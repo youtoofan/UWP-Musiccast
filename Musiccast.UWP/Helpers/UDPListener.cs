@@ -1,14 +1,11 @@
 ﻿using Musiccast.Model;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Musiccast.Helpers
 {
@@ -29,7 +26,7 @@ namespace Musiccast.Helpers
             if (listening)
                 return;
 
-            ThreadPool.QueueUserWorkItem((state) =>
+            ThreadPool.QueueUserWorkItem(async (state) =>
             {
                 var multicastIp = IPAddress.Parse(_ssdpMulticastIp);
                 IPEndPoint groupEP = new IPEndPoint(multicastIp, _endpointPort);
@@ -42,7 +39,8 @@ namespace Musiccast.Helpers
                     do
                     {
                         Debug.WriteLine("Waiting for broadcast");
-                        byte[] bytes = listener.Receive(ref groupEP);
+                        var udpResult = await listener.ReceiveAsync();
+                        byte[] bytes = udpResult.Buffer;
                         var temp = Encoding.ASCII.GetString(bytes, 0, bytes.Length);
 
                         Debug.WriteLine($"Received broadcast from {groupEP} :");
@@ -63,6 +61,9 @@ namespace Musiccast.Helpers
                 finally
                 {
                     listener.Close();
+                    listener.Dispose();
+
+                    Debug.WriteLine("Listener Disposed");
                 }
             });
         }
@@ -70,11 +71,6 @@ namespace Musiccast.Helpers
         public void StopListener()
         {
             listening = false;
-
-            if (listener != null)
-            {
-                listener.Close();
-            }
         }
     }
 }
