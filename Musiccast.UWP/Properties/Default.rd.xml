@@ -25,7 +25,12 @@
     
     
     <!-- Add your application specific runtime directives here. -->
-
+    <Assembly Dynamic="Required All" Name="Microsoft.Extensions.Hosting" />
+    <Assembly Dynamic="Required All" Name="Microsoft.Extensions.Logging" />
+    <Assembly Dynamic="Required All" Name="Microsoft.Extensions.Options" />
+    <Assembly Dynamic="Required All" Name="Microsoft.Extensions.Http" />
+    <Assembly Dynamic="Required All" Name="Rssdp" />
+    <Assembly Dynamic="Required All" Name="VungleSDK" />
 
   </Application>
 </Directives>
