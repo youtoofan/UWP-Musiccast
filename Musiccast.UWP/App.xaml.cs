@@ -38,8 +38,6 @@ namespace App4
             this.UnhandledException += App_UnhandledException;
         }
 
-        
-
         private void App_UnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
         {
             var logger = App.ServiceProvider.GetService(typeof(ILogger<App>)) as ILogger<App>;

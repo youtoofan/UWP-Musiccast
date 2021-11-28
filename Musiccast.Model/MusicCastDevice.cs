@@ -5,6 +5,7 @@ namespace Musiccast.Model
     public class MusicCastDevice
     {
         public string FriendlyName { get; set; }
+        public string UDN { get; set; }
         public string ImagePath { get; set; }
         public byte ImageSize { get; set; }
         public string Power { get; set; }

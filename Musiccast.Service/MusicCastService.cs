@@ -91,7 +91,8 @@ namespace Musiccast.Service
         {
             return new MusicCastDevice()
             {
-                Id = device.device.UDN,
+                Id = info.device_id,
+                UDN = device.device.UDN,
                 BaseUri = baseUri,
                 Zone = zone,
                 ModelName = info.model_name,
