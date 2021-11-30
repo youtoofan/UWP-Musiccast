@@ -12,21 +12,41 @@ namespace Musiccast.Service
     {
         private bool isDisposed;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly SsdpDeviceLocator deviceLocator;
+        private readonly string localIp;
+        private SsdpDeviceLocator deviceLocator;
+        private bool ignoreCache = true;
+
         public event EventHandler<DLNADescription> DeviceFound;
 
         public DLNADiscovery(IHttpClientFactory httpClientFactory, string localIp)
         {
             this._httpClientFactory = httpClientFactory;
-            this.deviceLocator = new SsdpDeviceLocator(localIp);
-            deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailableAsync;
-            deviceLocator.DeviceUnavailable += DeviceLocator_DeviceUnavailable;
-            deviceLocator.StartListeningForNotifications();
+            this.localIp = localIp;
+
+            InitListener();
+        }
+
+        private void InitListener()
+        {
+            try
+            {
+                deviceLocator = new SsdpDeviceLocator(localIp);
+                deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailableAsync;
+                deviceLocator.DeviceUnavailable += DeviceLocator_DeviceUnavailable;
+                deviceLocator.StartListeningForNotifications();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
         }
 
         public async Task ScanNetworkAsync()
         {
-            if (deviceLocator.IsSearching)
+            if (deviceLocator == null)
+                InitListener();
+
+            if (deviceLocator == null || deviceLocator.IsSearching)
                 return;
             
             await deviceLocator.SearchAsync("urn:schemas-upnp-org:device:MediaRenderer:1", TimeSpan.FromSeconds(5));
@@ -34,12 +54,18 @@ namespace Musiccast.Service
 
         public async Task ScanNetworkForDeviceAsync(string id)
         {
+            if (deviceLocator == null)
+                InitListener();
+
+            if (deviceLocator == null || deviceLocator.IsSearching)
+                return;
+
             await deviceLocator.SearchAsync($"uuid:{id}", TimeSpan.FromMilliseconds(100));
         }
 
         private async void DeviceLocator_DeviceAvailableAsync(object sender, DeviceAvailableEventArgs e)
         {
-            if (!e.IsNewlyDiscovered)
+            if (!e.IsNewlyDiscovered && !ignoreCache)
             {
                 Debug.WriteLine($"AVAIL DEVICE EVENT --> {e.DiscoveredDevice.NotificationType}: {e.DiscoveredDevice.DescriptionLocation}");
             }

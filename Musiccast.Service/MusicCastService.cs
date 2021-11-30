@@ -135,8 +135,6 @@ namespace Musiccast.Service
             }
         }
 
-        
-
         private async Task<GetDeviceInfoResponse> GetDeviceInfo(Uri baseUri)
         {
             var client = _httpClientFactory.CreateClient();

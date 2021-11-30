@@ -16,6 +16,7 @@ using Musiccast.Helpers;
 using Musiccast.Model;
 using Musiccast.Models;
 using Musiccast.Service;
+using Windows.Networking.Connectivity;
 using Windows.Storage;
 using Windows.System;
 
@@ -27,37 +28,12 @@ namespace App4.ViewModels
     /// <seealso cref="GalaSoft.MvvmLight.ViewModelBase" />
     public class ZonesViewModel : ViewModelBase, IDisposable
     {
-        private DispatcherQueue dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-        /// <summary>
-        /// The devices key
-        /// </summary>
-        private const string DevicesKey = "DEVICES";
-        /// <summary>
-        /// The navigation service
-        /// </summary>
+        private readonly DispatcherQueue dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+        private const string DevicesKey = "DEVICES2";
         private readonly NavigationServiceEx navigationService;
         private readonly ILogger<ZonesViewModel> logger;
-
-        /// <summary>
-        /// The service
-        /// </summary>
         private MusicCastService service;
-        /// <summary>
-        /// Gets or sets the devices.
-        /// </summary>
-        /// <value>
-        /// The devices.
-        /// </value>
         public ObservableCollection<Device> Devices { get; set; }
-
-        
-
-        /// <summary>
-        /// Gets the add device command.
-        /// </summary>
-        /// <value>
-        /// The add device command.
-        /// </value>
         public ICommand AddDeviceCommand
         {
             get
@@ -66,12 +42,16 @@ namespace App4.ViewModels
             }
         }
 
-        /// <summary>
-        /// Gets the view device detail command.
-        /// </summary>
-        /// <value>
-        /// The view device detail command.
-        /// </value>
+        public ICommand ClearDeviceCommand
+        {
+            get
+            {
+                return new RelayCommand(async () => { await ClearDevices().ConfigureAwait(false); });
+            }
+        }
+
+
+
         public ICommand ViewDeviceDetailCommand
         {
             get
@@ -93,6 +73,8 @@ namespace App4.ViewModels
 
         private bool _isLoading;
         private bool disposedValue;
+        private bool registeredNetworkStatusNotif;
+        private bool hasNetwork;
 
         public bool IsLoading
         {
@@ -100,10 +82,8 @@ namespace App4.ViewModels
             set { Set(ref _isLoading, value); }
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ZonesViewModel"/> class.
-        /// </summary>
-        /// <param name="navigationService">The navigation service.</param>
+        public bool HasNetwork { get => hasNetwork; set => Set(ref hasNetwork, value); }
+
         public ZonesViewModel(NavigationServiceEx navigationService)
         {
             Devices = new ObservableCollection<Device>();
@@ -116,11 +96,46 @@ namespace App4.ViewModels
             _ = InitAsync();
         }
 
-        /// <summary>
-        /// UDPs the listener device notification recieved.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="deviceId">The device identifier.</param>
+        private void NetworkStatusChange()
+        {
+            // register for network status change notifications
+            try
+            {
+                var networkStatusCallback = new NetworkStatusChangedEventHandler(OnNetworkStatusChange);
+                if (!registeredNetworkStatusNotif)
+                {
+                    NetworkInformation.NetworkStatusChanged += networkStatusCallback;
+                    registeredNetworkStatusNotif = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("Unexpected exception occured: " + ex.ToString());
+            }
+        }
+
+        async void OnNetworkStatusChange(object sender)
+        {
+            try
+            {
+                // get the ConnectionProfile that is currently used to connect to the Internet                
+                ConnectionProfile InternetConnectionProfile = NetworkInformation.GetInternetConnectionProfile();
+
+                if (InternetConnectionProfile == null)
+                {
+                    await dispatcherQueue.EnqueueAsync(() => { HasNetwork = false; });
+                }
+                else
+                {
+                    await dispatcherQueue.EnqueueAsync(() => { HasNetwork = InternetConnectionProfile.GetNetworkConnectivityLevel() >= NetworkConnectivityLevel.LocalAccess; });
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("Unexpected exception occured: " + ex.ToString());
+            }
+        }
+
         private async void UDPListener_DeviceNotificationRecievedAsync(object sender, string deviceId)
         {
             logger.LogInformation("Listening");
@@ -162,11 +177,6 @@ namespace App4.ViewModels
             }
         }
 
-        /// <summary>
-        /// Refreshes the devices asynchronous.
-        /// </summary>
-        /// <param name="state">The state.</param>
-        /// <returns></returns>
         private async Task RefreshDevicesAsync(object state)
         {
             try
@@ -230,10 +240,6 @@ namespace App4.ViewModels
             }
         }
 
-        /// <summary>
-        /// Initializes the asynchronous.
-        /// </summary>
-        /// <returns></returns>
         public async Task InitAsync()
         {
             logger.LogInformation("Init async");
@@ -259,21 +265,11 @@ namespace App4.ViewModels
             });
         }
 
-        /// <summary>
-        /// Unregisters this instance from the Messenger class.
-        /// <para>To cleanup additional resources, override this method, clean
-        /// up and then call base.Cleanup().</para>
-        /// </summary>
         public override void Cleanup()
         {
             base.Cleanup();
         }
 
-        /// <summary>
-        /// Addresses to ip address.
-        /// </summary>
-        /// <param name="addr">The addr.</param>
-        /// <returns></returns>
         private IPAddress AddressToIPAddress(string addr)
         {
             // careful of sign extension: convert to uint first;
@@ -282,23 +278,13 @@ namespace App4.ViewModels
             return address;
         }
 
-        /// <summary>
-        /// Items the power toggled asynchronous.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The e.</param>
-        /// <returns></returns>
         private async Task Item_PowerToggledAsync(object sender, Device e)
         {
             await service.TogglePowerAsync(new Uri(e.BaseUri), e.Zone).ConfigureAwait(false);
             await RefreshDevicesAsync(null).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Finds the new devices.
-        /// </summary>
-        /// <returns></returns>
-        public async Task FindNewDevices()
+        private async Task FindNewDevices()
         {
             await dispatcherQueue.EnqueueAsync(async () =>
             {
@@ -318,10 +304,27 @@ namespace App4.ViewModels
             });
         }
 
-        /// <summary>
-        /// Cancels the find new devices.
-        /// </summary>
-        /// <returns></returns>
+        private async Task ClearDevices()
+        {
+            await dispatcherQueue.EnqueueAsync(async () =>
+            {
+                try
+                {
+                    IsLoading = true;
+                    Devices.Clear();
+                    await SaveDevicesInStorageAsync(Devices.ToList());
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Finding devices failed.");
+                }
+                finally
+                {
+                    IsLoading = false;
+                }
+            });
+        }
+
         private async Task CancelFindNewDevices()
         {
             await dispatcherQueue.EnqueueAsync(() =>
@@ -330,11 +333,6 @@ namespace App4.ViewModels
             });
         }
 
-        /// <summary>
-        /// Services the device found asynchronous.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="device">The device.</param>
         private async void Service_DeviceFoundAsync(object sender, MusicCastDevice device)
         {
             await dispatcherQueue.EnqueueAsync(() =>
@@ -362,17 +360,13 @@ namespace App4.ViewModels
             await SaveDevicesInStorageAsync(Devices.ToList()).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Loads the devices from storage asynchronous.
-        /// </summary>
-        /// <returns></returns>
         private async Task<List<Device>> LoadDevicesFromStorageAsync()
         {
             try
             {
                 var devices = await ApplicationData.Current.LocalSettings.ReadAsync<List<Device>>(DevicesKey).ConfigureAwait(false);
 
-                if(devices != null)
+                if (devices != null)
                     foreach (var item in devices)
                     {
                         item.IsAlive = false;
@@ -387,11 +381,6 @@ namespace App4.ViewModels
             }
         }
 
-        /// <summary>
-        /// Saves the devices in storage asynchronous.
-        /// </summary>
-        /// <param name="devices">The devices.</param>
-        /// <returns></returns>
         private async Task SaveDevicesInStorageAsync(List<Device> devices)
         {
             try

@@ -31,6 +31,7 @@
         <helpers:BooleanToVisibilityConverter x:Name="booleanToVisibilityConverter" />
         <helpers:InverseBooleanToVisibilityConverter x:Name="inverseBooleanToVisibilityConverter" />
         <helpers:IntToVisibilityConverter x:Name="intToVisibilityConverter" />
+        <helpers:InverseIntToVisibilityConverter x:Name="inverseIntToVisibilityConverter" />
 
         <DataTemplate x:Name="ContactListViewTemplate" x:DataType="local:Device">
             <Grid
@@ -101,9 +102,16 @@
                             Text="{x:Bind SubTitle, Mode=OneWay}" />
                     </StackPanel>
                 </StackPanel>
+                <StackPanel Background="White" Orientation="Horizontal" Grid.RowSpan="3" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="36" Visibility="{x:Bind IsAlive, Converter={StaticResource inverseBooleanToVisibilityConverter}, Mode=OneWay}">
+                    <SymbolIcon Symbol="DisconnectDrive" Margin="0,0,6,0"/>
+                    <TextBlock  Style="{StaticResource TitleTextBlockStyle}"  >
+                    <Run Text="Not found!"/>
+                    </TextBlock>
+                </StackPanel>
             </Grid>
         </DataTemplate>
     </Page.Resources>
+
     <Grid x:Name="ContentArea" Background="{ThemeResource SystemControlChromeHighAcrylicWindowMediumBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -134,18 +142,26 @@
                 Grid.Column="1"
                 HorizontalAlignment="Center"
                 Style="{StaticResource SubtitleTextBlockStyle}" />
-            <Button
-                Grid.Column="2"
-                HorizontalAlignment="Right"
-                Background="Transparent"
-                Command="{x:Bind ViewModel.AddDeviceCommand}">
-                <SymbolIcon Symbol="Add" />
-            </Button>
+            <StackPanel Grid.Column="2" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="4">
+                <Button
+                    Background="Transparent"
+                    Command="{x:Bind ViewModel.AddDeviceCommand}">
+                    <SymbolIcon Symbol="Add" />
+                </Button>
+                <Button
+                    Visibility="{x:Bind ViewModel.Devices.Count, Converter={StaticResource inverseIntToVisibilityConverter }, Mode=OneWay}"
+                    Background="Transparent"
+                    Command="{x:Bind ViewModel.ClearDeviceCommand}">
+                    <SymbolIcon Symbol="Delete" />
+                </Button>
+            </StackPanel>
         </Grid>
-        <TextBlock Grid.Row="1" Style="{StaticResource TitleTextBlockStyle}" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{x:Bind ViewModel.Devices.Count, Converter={StaticResource intToVisibilityConverter }, Mode=OneWay}" Padding="36">
+        <TextBlock Grid.Row="1" Grid.RowSpan="2" Style="{StaticResource TitleTextBlockStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="36" Visibility="{x:Bind ViewModel.Devices.Count, Converter={StaticResource intToVisibilityConverter }, Mode=OneWay}" >
             <Run Text="Press the plus button on the top right to start searching for devices."/>
-            <Run Text=""/>
-            <Run Text="Make sure you are connected to your home network and your devices are powered on."/>
+            <LineBreak/>
+            <Run Text="Make sure you are connected to your (local) home network and DLNA is not blocked by your router."/>
+             <LineBreak/>
+            <Run Text="VPN connections are not supported."/>
         </TextBlock>
         <controls:AdaptiveGridView
             Name="AdaptiveGridViewControl"

@@ -30,14 +30,14 @@ namespace Musiccast.Helpers
 
             ThreadPool.QueueUserWorkItem(async (state) =>
             {
-                var multicastIp = IPAddress.Parse(_ssdpMulticastIp);
-                IPEndPoint groupEP = new IPEndPoint(multicastIp, _endpointPort);
-                listener = new UdpClient(new IPEndPoint(IPAddress.Any, port));
-                listener.EnableBroadcast = true;
-                listening = true;
-
                 try
                 {
+                    var multicastIp = IPAddress.Parse(_ssdpMulticastIp);
+                    IPEndPoint groupEP = new IPEndPoint(multicastIp, _endpointPort);
+                    listener = new UdpClient(new IPEndPoint(IPAddress.Any, port));
+                    listener.EnableBroadcast = true;
+                    listening = true;
+
                     do
                     {
                         Debug.WriteLine("Waiting for broadcast");
@@ -62,9 +62,11 @@ namespace Musiccast.Helpers
                 }
                 finally
                 {
-                    listener.Close();
-                    listener.Dispose();
-
+                    if (listener != null)
+                    {
+                        listener.Close();
+                        listener.Dispose();
+                    }
                     Debug.WriteLine("Listener Disposed");
                 }
             });
