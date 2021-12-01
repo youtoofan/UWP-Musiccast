@@ -30,7 +30,7 @@ namespace Musiccast.Service
         {
             try
             {
-                deviceLocator = new SsdpDeviceLocator(localIp);
+                deviceLocator = new SsdpDeviceLocator(new Rssdp.Infrastructure.SsdpCommunicationsServer(new Rssdp.SocketFactory(localIp)));
                 deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailableAsync;
                 deviceLocator.DeviceUnavailable += DeviceLocator_DeviceUnavailable;
                 deviceLocator.StartListeningForNotifications();
