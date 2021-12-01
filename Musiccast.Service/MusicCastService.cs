@@ -6,6 +6,9 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Net.Http;
 using Windows.Networking.Connectivity;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Net;
 
 namespace Musiccast.Service
 {
@@ -194,21 +197,49 @@ namespace Musiccast.Service
 
         private string GetLocalIp()
         {
-            var icp = NetworkInformation.GetInternetConnectionProfile();
+            UnicastIPAddressInformation mostSuitableIp = null;
+            var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
 
-            if (icp?.NetworkAdapter == null)
-                return null;
+            foreach (var network in networkInterfaces)
+            {
+                if (network.OperationalStatus != OperationalStatus.Up)
+                    continue;
 
-            var hostnames = NetworkInformation.GetHostNames().Where(hn =>
-                            hn.IPInformation?.NetworkAdapter != null &&
-                            hn.IPInformation.NetworkAdapter.NetworkAdapterId == icp.NetworkAdapter.NetworkAdapterId);
+                var properties = network.GetIPProperties();
 
-            var hostname = hostnames.FirstOrDefault(t => t.Type == Windows.Networking.HostNameType.Ipv4);
-            if (hostname == null)
-                hostname = hostnames.FirstOrDefault();
+                if (properties.GatewayAddresses.Count == 0)
+                    continue;
 
-            // the ip address
-            return hostname?.CanonicalName;
+                foreach (var address in properties.UnicastAddresses)
+                {
+                    if (address.Address.AddressFamily != AddressFamily.InterNetwork)
+                        continue;
+
+                    if (IPAddress.IsLoopback(address.Address))
+                        continue;
+
+                    if (!address.IsDnsEligible)
+                    {
+                        if (mostSuitableIp == null)
+                            mostSuitableIp = address;
+                        continue;
+                    }
+
+                    // The best IP is the IP got from DHCP server
+                    if (address.PrefixOrigin != PrefixOrigin.Dhcp)
+                    {
+                        if (mostSuitableIp == null || !mostSuitableIp.IsDnsEligible)
+                            mostSuitableIp = address;
+                        continue;
+                    }
+
+                    return address.Address.ToString();
+                }
+            }
+
+            return mostSuitableIp != null
+                ? mostSuitableIp.Address.ToString()
+                : "";
         }
 
         #endregion

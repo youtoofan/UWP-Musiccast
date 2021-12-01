@@ -49,7 +49,7 @@ namespace Musiccast.Service
             if (deviceLocator == null || deviceLocator.IsSearching)
                 return;
             
-            await deviceLocator.SearchAsync("urn:schemas-upnp-org:device:MediaRenderer:1", TimeSpan.FromSeconds(5));
+            _ = await deviceLocator.SearchAsync("urn:schemas-upnp-org:device:MediaRenderer:1", TimeSpan.FromSeconds(5));
         }
 
         public async Task ScanNetworkForDeviceAsync(string id)
