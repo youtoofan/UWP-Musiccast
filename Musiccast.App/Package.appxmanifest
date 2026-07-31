@@ -11,7 +11,7 @@
   <Identity
     Name="63231GhostInTheMachine.Musiccast10"
     Publisher="CN=430F4AFF-6449-4CA8-9BE9-F70AFBEAF59B"
-    Version="1.0.34.0" />
+    Version="1.0.38.0" />
 
   <mp:PhoneIdentity PhoneProductId="98bb14e3-e42b-460f-aae0-f735d125e871" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -49,6 +49,8 @@
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
     <systemai:Capability Name="systemAIModels"/>
+    <Capability Name="internetClient"/>
+    <Capability Name="privateNetworkClientServer"/>
   </Capabilities>
 </Package>
 
