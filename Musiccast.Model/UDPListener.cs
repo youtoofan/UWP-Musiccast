@@ -1,5 +1,4 @@
 ﻿using Musiccast.Model;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,6 +20,13 @@ namespace Musiccast.Helpers
         const string _ssdpMulticastIp = "239.255.255.250";
         const int _endpointPort = 1900;
         private IPEndPoint _multicastEndPoint;
+
+        private static readonly System.Text.Json.JsonSerializerOptions UdpJsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString
+                | System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
+        };
 
         /// <summary>
         /// Starts the listener.
@@ -59,7 +65,7 @@ namespace Musiccast.Helpers
                         {
                             var temp = Encoding.UTF8.GetString(receiveBuffer, 0, receivedBytes);
                             Debug.WriteLine(temp);
-                            var result = JsonConvert.DeserializeObject<MusicCastNotification>(temp);
+                            var result = System.Text.Json.JsonSerializer.Deserialize<MusicCastNotification>(temp, UdpJsonOptions);
                             if (result != null && !string.IsNullOrEmpty(result.device_id))
                             {
                                 string id = result.device_id;

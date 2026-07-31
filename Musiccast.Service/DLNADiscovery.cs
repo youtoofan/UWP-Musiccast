@@ -72,12 +72,14 @@ namespace Musiccast.Service
             else
             {
                 var foundDevice = e.DiscoveredDevice;
-                Debug.WriteLine($"New DEVICE FOUND: {foundDevice.Usn} at {foundDevice.DescriptionLocation.ToString()}");
+                Debug.WriteLine($"New DEVICE FOUND: {foundDevice.Usn} at {foundDevice.DescriptionLocation}");
 
                 // Can retrieve the full device description easily though.
                 var fullDevice = await foundDevice.GetDeviceInfo().ConfigureAwait(false);
-                Debug.WriteLine(fullDevice.FriendlyName);
-
+#if DEBUG
+                if(fullDevice.FriendlyName == "Tuin")
+                    Debug.WriteLine(fullDevice.FriendlyName);
+#endif
                 var result = await RenderDeviceAsync(foundDevice.DescriptionLocation.ToString()).ConfigureAwait(false);
                 if (result != null && DeviceFound != null)
                     DeviceFound(this, result);

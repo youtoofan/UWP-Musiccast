@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Musiccast.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Musiccast.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

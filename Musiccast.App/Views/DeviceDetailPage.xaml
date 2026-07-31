@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Musiccast.App.Views.DeviceDetailPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:Musiccast.App.Models"
+	xmlns:helpers="using:Musiccast.App.Helpers"
+
+    mc:Ignorable="d">
+
+	
+    <Grid Padding="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header / Now playing -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Command="{x:Bind ViewModel.NavigateHomeCommand}"
+                    VerticalAlignment="Top" Margin="0,0,16,0">
+                <FontIcon Glyph="&#xE72B;" FontSize="16" />
+            </Button>
+
+            <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Text="{x:Bind ViewModel.Device.FriendlyName, Mode=OneWay}"
+                           Style="{StaticResource TitleTextBlockStyle}" />
+                <TextBlock Text="{x:Bind ViewModel.Device.Input, Mode=OneWay}"
+                           Style="{StaticResource BodyStrongTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <TextBlock Text="{x:Bind ViewModel.Device.SubTitle, Mode=OneWay}"
+                           Style="{StaticResource BodyTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+
+            <ToggleButton Grid.Column="2" VerticalAlignment="Top" MinWidth="80"
+                          Command="{x:Bind ViewModel.Device.TogglePowerCommand, Mode=OneWay}"
+                          IsChecked="{x:Bind ViewModel.Device.IsOn, Mode=OneWay}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE7E8;" FontSize="14" />
+                    <TextBlock Text="{x:Bind ViewModel.Device.IsOnString, Mode=OneWay}" />
+                </StackPanel>
+            </ToggleButton>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,50,0,0">
+            <StackPanel Spacing="24" MaxWidth="960" HorizontalAlignment="Center" >
+
+                <!-- Volume -->
+                <Grid CornerRadius="12" Padding="20"
+                      Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                      BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Grid.Column="0" Glyph="&#xE767;" FontSize="20"
+                              Margin="0,0,16,0" VerticalAlignment="Center" />
+                    <Slider Grid.Column="1" VerticalAlignment="Center"
+                            Minimum="0"
+                            Maximum="{x:Bind ViewModel.Device.MaxVolume, Mode=OneWay}"
+                            Value="{x:Bind ViewModel.Device.Volume, Mode=TwoWay}" />
+                </Grid>
+
+                <!-- Inputs -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Inputs" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <GridView ItemsSource="{x:Bind ViewModel.InputList, Mode=OneWay}"
+                              SelectionMode="None" IsItemClickEnabled="True"
+                              ItemClick="InputsGrid_ItemClick">
+                        <GridView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Input">
+                                <StackPanel Width="96" Height="96" Margin="4"
+                                            CornerRadius="10" Padding="8"
+                                            Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Stretch">
+                                    <FontIcon Glyph="{x:Bind Icon}" FontSize="24"
+                                              HorizontalAlignment="Center" Margin="0,10,0,8" />
+                                    <TextBlock Text="{x:Bind Name}" TextAlignment="Center"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </GridView.ItemTemplate>
+                    </GridView>
+                </StackPanel>
+
+                <!-- Favorites / Presets -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Presets" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <GridView ItemsSource="{x:Bind ViewModel.FavoritesList, Mode=OneWay}"
+                              SelectionMode="None" IsItemClickEnabled="True"
+                              ItemClick="FavoritesGrid_ItemClick">
+                        <GridView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Preset">
+                                <StackPanel Width="200" Height="100" Margin="4"
+                                            CornerRadius="10" Padding="12"
+                                            Background="{ThemeResource ControlFillColorDefaultBrush}">
+                                    <TextBlock Text="{x:Bind Text}"
+                                               Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{x:Bind Band}"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </GridView.ItemTemplate>
+                    </GridView>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

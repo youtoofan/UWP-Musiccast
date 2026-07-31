@@ -4,7 +4,7 @@ namespace Musiccast.Model
 {
     public class GetDistributionInfoResponse
     {
-        public string response_code { get; set; }
+        public int response_code { get; set; }
         public string group_id { get; set; }
         public string group_name { get; set; }
         public string role { get; set; }
