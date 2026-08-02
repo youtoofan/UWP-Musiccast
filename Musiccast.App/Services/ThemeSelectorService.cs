@@ -25,14 +25,18 @@ namespace Musiccast.App.Services
         public static void SetRequestedTheme()
         {
             if (App.MainWindow?.Content is FrameworkElement rootElement)
+            {
                 rootElement.RequestedTheme = Theme;
+            }
         }
 
         private static async Task<ElementTheme> LoadThemeFromSettingsAsync()
         {
             var themeName = await SettingsStorage.ReadAsync<string>(SettingsKey);
             if (System.Enum.TryParse(themeName, out ElementTheme cacheTheme))
+            {
                 return cacheTheme;
+            }
 
             return ElementTheme.Default;
         }

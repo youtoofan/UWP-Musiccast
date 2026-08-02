@@ -52,7 +52,9 @@ public sealed partial class MainWindow : Window
     private void NavView_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
     {
         if (ContentFrame.CanGoBack)
+        {
             ContentFrame.GoBack();
+        }
     }
 
     private void ContentFrame_Navigated(object sender, NavigationEventArgs e)

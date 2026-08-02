@@ -20,7 +20,9 @@ namespace Musiccast.App.Views
         {
             base.OnNavigatedTo(e);
             if (e.Parameter is Device device)
+            {
                 await ViewModel.LoadAsync(device);
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -32,13 +34,17 @@ namespace Musiccast.App.Views
         private void InputsGrid_ItemClick(object sender, ItemClickEventArgs e)
         {
             if (e.ClickedItem is Input input)
+            {
                 ViewModel.InputClickedCommand.Execute(input);
+            }
         }
 
         private void FavoritesGrid_ItemClick(object sender, ItemClickEventArgs e)
         {
             if (e.ClickedItem is Preset preset)
+            {
                 ViewModel.FavoriteClickedCommand.Execute(preset);
+            }
         }
     }
 }

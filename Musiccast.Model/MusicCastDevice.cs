@@ -18,5 +18,6 @@ namespace Musiccast.Model
         public int Volume { get; set; }
         public int MaxVolume { get; set; }
         public Uri BaseUri { get; set; }
+        public int Preset { get; set; }
     }
 }

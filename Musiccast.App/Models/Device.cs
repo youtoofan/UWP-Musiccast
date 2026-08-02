@@ -41,7 +41,9 @@ namespace Musiccast.App.Models
             set
             {
                 if (SetProperty(ref _volume, value))
+                {
                     VolumeChanged?.Invoke(this, this);
+                }
             }
         }
 

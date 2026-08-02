@@ -60,7 +60,9 @@ namespace Musiccast.App.ViewModels
         private void ViewDeviceDetail(Device? device)
         {
             if (device != null)
+            {
                 _navigationService.Navigate(typeof(DeviceDetailPage), device);
+            }
         }
 
         [RelayCommand]
@@ -74,7 +76,9 @@ namespace Musiccast.App.ViewModels
             {
                 Devices.Clear();
                 foreach (var item in stored)
+                {
                     Devices.Add(item);
+                }
 
                 await RefreshDevicesAsync();
                 await SaveDevicesAsync();
@@ -101,13 +105,17 @@ namespace Musiccast.App.ViewModels
         private async Task RefreshDevicesAsync()
         {
             if (!Devices.Any())
+            {
                 return;
+            }
 
             for (int i = Devices.Count - 1; i >= 0; i--)
             {
                 var device = Devices.Count > i ? Devices[i] : null;
                 if (device == null || string.IsNullOrEmpty(device.BaseUri))
+                {
                     continue;
+                }
 
                 MusicCastDevice? updated = null;
                 try
@@ -165,7 +173,9 @@ namespace Musiccast.App.ViewModels
                 IsLoading = false;
 
                 if (Devices.Where(w => w != null).Select(s => s.FriendlyName).Contains(device.FriendlyName))
+                {
                     return;
+                }
 
                 var newDevice = new Device
                 {
@@ -191,7 +201,9 @@ namespace Musiccast.App.ViewModels
         {
             var existing = Devices.Where(w => w.Id != null && w.Id.Equals(deviceId)).ToList();
             if (existing.Count == 0)
+            {
                 return;
+            }
 
             foreach (var device in existing)
             {
@@ -206,7 +218,9 @@ namespace Musiccast.App.ViewModels
                 }
 
                 if (updated == null)
+                {
                     continue;
+                }
 
                 Enqueue(() =>
                 {
@@ -224,8 +238,12 @@ namespace Musiccast.App.ViewModels
         {
             var devices = await SettingsStorage.ReadAsync<List<Device>>(DevicesKey);
             if (devices != null)
+            {
                 foreach (var item in devices)
+                {
                     item.IsAlive = false;
+                }
+            }
 
             return devices ?? new List<Device>();
         }
@@ -238,7 +256,11 @@ namespace Musiccast.App.ViewModels
 
         public void Dispose()
         {
-            if (_disposed) return;
+            if (_disposed)
+            {
+                return;
+            }
+
             _service.DeviceFound -= Service_DeviceFoundAsync;
             App.UDPNotificationReceived -= UDPListener_DeviceNotificationReceivedAsync;
             _disposed = true;

@@ -13,6 +13,14 @@ namespace Musiccast.App.Models
 
         [ObservableProperty]
         public partial string? Name { get; set; }
+
+        [ObservableProperty]
+        public partial bool? IsSelected { get; set; }
+
+        override public string ToString()
+        {
+            return Id + " => " + Name + ": " + IsSelected ?? string.Empty;
+        }
     }
 
     public partial class Preset : ObservableObject
@@ -31,5 +39,8 @@ namespace Musiccast.App.Models
 
         [ObservableProperty]
         public partial int Index { get; set; }
+
+        [ObservableProperty]
+        public partial bool? IsSelected { get; set; }
     }
 }

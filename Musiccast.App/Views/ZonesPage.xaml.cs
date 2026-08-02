@@ -18,7 +18,9 @@ namespace Musiccast.App.Views
         private void DevicesGrid_ItemClick(object sender, ItemClickEventArgs e)
         {
             if (e.ClickedItem is Device device)
+            {
                 ViewModel.ViewDeviceDetailCommand.Execute(device);
+            }
         }
     }
 }

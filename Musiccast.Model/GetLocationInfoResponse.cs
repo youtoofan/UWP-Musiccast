@@ -22,16 +22,24 @@ namespace Musiccast.Model
             get
             {
                 if (main)
+                {
                     yield return "main";
+                }
 
                 if (zone2)
+                {
                     yield return "zone2";
+                }
 
                 if (zone3)
+                {
                     yield return "zone3";
+                }
 
                 if (zone4)
+                {
                     yield return "zone4";
+                }
             }
             
         }

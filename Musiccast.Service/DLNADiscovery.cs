@@ -44,21 +44,29 @@ namespace Musiccast.Service
         public async Task ScanNetworkAsync()
         {
             if (deviceLocator == null)
+            {
                 InitListener();
+            }
 
             if (deviceLocator == null || deviceLocator.IsSearching)
+            {
                 return;
-            
+            }
+
             _ = await deviceLocator.SearchAsync("urn:schemas-upnp-org:device:MediaRenderer:1", TimeSpan.FromSeconds(5));
         }
 
         public async Task ScanNetworkForDeviceAsync(string id)
         {
             if (deviceLocator == null)
+            {
                 InitListener();
+            }
 
             if (deviceLocator == null || deviceLocator.IsSearching)
+            {
                 return;
+            }
 
             await deviceLocator.SearchAsync($"uuid:{id}", TimeSpan.FromMilliseconds(100));
         }
@@ -82,7 +90,9 @@ namespace Musiccast.Service
 #endif
                 var result = await RenderDeviceAsync(foundDevice.DescriptionLocation.ToString()).ConfigureAwait(false);
                 if (result != null && DeviceFound != null)
+                {
                     DeviceFound(this, result);
+                }
             }
         }
 
@@ -126,12 +136,17 @@ namespace Musiccast.Service
         // The bulk of the clean-up code is implemented in Dispose(bool)
         protected virtual void Dispose(bool disposing)
         {
-            if (isDisposed) return;
+            if (isDisposed)
+            {
+                return;
+            }
 
             if (disposing)
             {
                 if (deviceLocator != null && !deviceLocator.IsDisposed)
+                {
                     deviceLocator.Dispose();
+                }
             }
 
             isDisposed = true;

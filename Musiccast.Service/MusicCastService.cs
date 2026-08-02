@@ -65,7 +65,9 @@ namespace Musiccast.Service
         private async void DeviceFoundAsync(object sender, DLNADescription device)
         {
             if (device == null || device.X_device == null)
+            {
                 return;
+            }
 
             try
             {
@@ -85,10 +87,13 @@ namespace Musiccast.Service
                     {
                         var tuner = await this.GetTunerPlayInfoAsync(baseUri).ConfigureAwait(false);
                         convertedModel.NowPlayingInformation = tuner.NowPlayingSummary;
+                        convertedModel.Preset = tuner.Preset;
                     }
 
                     if (DeviceFound != null)
+                    {
                         DeviceFound(this, convertedModel);
+                    }
                 }
             }
             catch (Exception e)
@@ -97,7 +102,7 @@ namespace Musiccast.Service
             }
         }
 
-        private MusicCastDevice ConvertApiDeviceToDevice(Uri baseUri, string zone, string friendlyName, DLNADescription device, GetStatusResponse status, GetDeviceInfoResponse info)
+        private static MusicCastDevice ConvertApiDeviceToDevice(Uri baseUri, string zone, string friendlyName, DLNADescription device, GetStatusResponse status, GetDeviceInfoResponse info)
         {
             return new MusicCastDevice()
             {
@@ -196,7 +201,9 @@ namespace Musiccast.Service
         private static void AddClientHeaders(HttpClient client)
         {
             if (client == null)
+            {
                 return;
+            }
 
             client.DefaultRequestHeaders.Add("X-AppName", Constants.UDP_ClientId);
             client.DefaultRequestHeaders.Add("X-AppPort", Constants.UDP_ListenPort.ToString());
@@ -210,25 +217,36 @@ namespace Musiccast.Service
             foreach (var network in networkInterfaces)
             {
                 if (network.OperationalStatus != OperationalStatus.Up)
+                {
                     continue;
+                }
 
                 var properties = network.GetIPProperties();
 
                 if (properties.GatewayAddresses.Count == 0)
+                {
                     continue;
+                }
 
                 foreach (var address in properties.UnicastAddresses)
                 {
                     if (address.Address.AddressFamily != AddressFamily.InterNetwork)
+                    {
                         continue;
+                    }
 
                     if (IPAddress.IsLoopback(address.Address))
+                    {
                         continue;
+                    }
 
                     if (!address.IsDnsEligible)
                     {
                         if (mostSuitableIp == null)
+                        {
                             mostSuitableIp = address;
+                        }
+
                         continue;
                     }
 
@@ -236,7 +254,10 @@ namespace Musiccast.Service
                     if (address.PrefixOrigin != PrefixOrigin.Dhcp)
                     {
                         if (mostSuitableIp == null || !mostSuitableIp.IsDnsEligible)
+                        {
                             mostSuitableIp = address;
+                        }
+
                         continue;
                     }
 
@@ -373,6 +394,7 @@ namespace Musiccast.Service
                 {
                     var tuner = await this.GetTunerPlayInfoAsync(baseUri).ConfigureAwait(false);
                     temp.NowPlayingInformation = tuner.NowPlayingSummary;
+                    temp.Preset = tuner.Preset;
                 }
                 else
                 {
@@ -433,12 +455,17 @@ namespace Musiccast.Service
         // The bulk of the clean-up code is implemented in Dispose(bool)
         protected virtual void Dispose(bool disposing)
         {
-            if (isDisposed) return;
+            if (isDisposed)
+            {
+                return;
+            }
 
             if (disposing)
             {
                 if (service != null)
+                {
                     service.Dispose();
+                }
             }
 
             isDisposed = true;

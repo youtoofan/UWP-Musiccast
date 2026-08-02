@@ -34,6 +34,29 @@ namespace Musiccast.Model
                 return string.Empty;
             }
         }
+
+        public int Preset
+        {
+            get
+            {
+                if (band.Equals("FM", StringComparison.OrdinalIgnoreCase))
+                {
+                    return fm.preset;
+                }
+
+                if (band.Equals("RDS", StringComparison.OrdinalIgnoreCase))
+                {
+                    return 0;
+                }
+
+                if (band.Equals("DAB", StringComparison.OrdinalIgnoreCase))
+                {
+                    return dab.preset;
+                }
+
+                return 0;
+            }
+        }
     }
 
     public class Fm

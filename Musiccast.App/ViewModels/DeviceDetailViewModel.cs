@@ -72,33 +72,49 @@ namespace Musiccast.App.ViewModels
         private async Task FavoriteClicked(Preset? item)
         {
             if (item == null || Device == null)
+            {
                 return;
+            }
 
             if (item.InputType == Inputs.tuner)
+            {
                 await _service.RecallTunerPresetAsync(new Uri(Device.BaseUri!), Device.Zone!, item.Band!, item.Index);
+            }
 
             if (item.InputType == Inputs.usb)
+            {
                 await _service.RecallUsbPresetAsync(new Uri(Device.BaseUri!), Device.Zone!, item.Index);
+            }
         }
 
         [RelayCommand]
         private async Task InputClicked(Input? item)
         {
             if (item == null || Device == null)
+            {
                 return;
+            }
 
             await _service.ChangeDeviceInputAsync(new Uri(Device.BaseUri!), Device.Zone!, item.Id!);
         }
 
         private async void Device_VolumeChanged(object? sender, Device e)
         {
-            if (e == null) return;
+            if (e == null)
+            {
+                return;
+            }
+
             await _service.AdjustDeviceVolume(new Uri(e.BaseUri!), e.Zone!, e.Volume);
         }
 
         private async void Device_PowerToggledAsync(object? sender, Device e)
         {
-            if (e == null) return;
+            if (e == null)
+            {
+                return;
+            }
+
             await _service.TogglePowerAsync(new Uri(e.BaseUri!), e.Zone!);
             await RefreshDeviceAsync();
         }
@@ -106,7 +122,9 @@ namespace Musiccast.App.ViewModels
         private async void UDPListener_DeviceNotificationReceivedAsync(object? sender, string deviceId)
         {
             if (Device?.Id == null || !Device.Id.Equals(deviceId))
+            {
                 return;
+            }
 
             await RefreshDeviceAsync();
         }
@@ -114,7 +132,9 @@ namespace Musiccast.App.ViewModels
         private async Task RefreshDeviceAsync()
         {
             if (Device == null)
+            {
                 return;
+            }
 
             try
             {
@@ -127,14 +147,16 @@ namespace Musiccast.App.ViewModels
 
                 await Task.WhenAll(refresh, feat, dab, fm, usb);
 
-                var updated = await refresh;
-                var features = await feat;
-                var tunerDab = await dab;
-                var tunerFm = await fm;
-                var usbPresets = await usb;
+                var updated = refresh.Result;
+                var features = feat.Result;
+                var tunerDab = dab.Result;
+                var tunerFm = fm.Result;
+                var usbPresets = usb.Result;
 
                 if (updated == null)
+                {
                     return;
+                }
 
                 _dispatcherQueue.TryEnqueue(() =>
                 {
@@ -151,27 +173,39 @@ namespace Musiccast.App.ViewModels
                     Device.FriendlyName = string.IsNullOrEmpty(updated.FriendlyName) ? Device.FriendlyName : updated.FriendlyName;
 
                     if (features?.system?.input_list != null)
+                    {
                         foreach (var item in features.system.input_list)
-                            InputList.Add(InputToGlyphAndTitleConverter.ConvertInput(item.id));
+                        {
+                            var input = InputToGlyphAndTitleConverter.ConvertInput(item.id);
+                            input.IsSelected = (input.Id == Device.Input.ToString());
+                            InputList.Add(input);
+                        }
+                    }
 
-                    AddTunerPresets(tunerDab, requireText: false);
-                    AddTunerPresets(tunerFm, requireText: true);
+                    AddTunerPresets(tunerDab, requireText: false, updated.Preset);
+                    AddTunerPresets(tunerFm, requireText: true, updated.Preset);
 
                     if (usbPresets?.preset_info != null)
+                    {
                         for (int i = 0; i < usbPresets.preset_info.Count; i++)
                         {
                             var item = usbPresets.preset_info[i];
                             if (string.IsNullOrEmpty(item.text))
+                            {
                                 continue;
+                            }
 
-                            FavoritesList.Add(new Preset
+                            var preset = new Preset
                             {
                                 Band = item.input,
                                 Text = item.text,
                                 Index = i + 1,
                                 InputType = Inputs.usb
-                            });
+                            };
+
+                            FavoritesList.Add(preset);
                         }
+                    }
                 });
             }
             catch (Exception e)
@@ -180,32 +214,43 @@ namespace Musiccast.App.ViewModels
             }
         }
 
-        private void AddTunerPresets(GetTunerPresetInfo presets, bool requireText)
+        private void AddTunerPresets(GetTunerPresetInfo presets, bool requireText, int selectedPreset = 0)
         {
             if (presets?.preset_info == null)
+            {
                 return;
+            }
 
             for (int i = 0; i < presets.preset_info.Count; i++)
             {
                 var item = presets.preset_info[i];
 
                 if (!requireText && item.number <= 0)
+                {
                     continue;
+                }
 
                 if (requireText && string.IsNullOrEmpty(item.text))
+                {
                     continue;
+                }
 
                 if (string.IsNullOrEmpty(item.text))
+                {
                     item.text = item.number.ToString();
+                }
 
-                FavoritesList.Add(new Preset
+                var preset = new Preset
                 {
                     Band = item.band,
                     Text = item.text,
                     Number = item.number,
                     Index = i + 1,
-                    InputType = Inputs.tuner
-                });
+                    InputType = Inputs.tuner,
+                    IsSelected = (i + 1 == selectedPreset)
+                };
+
+                FavoritesList.Add(preset);
             }
         }
     }

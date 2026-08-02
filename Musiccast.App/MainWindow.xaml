@@ -31,6 +31,7 @@
             IsBackButtonVisible="Auto"
             IsSettingsVisible="True"
             PaneDisplayMode="Left"
+            IsPaneOpen="False"
             IsPaneToggleButtonVisible="True"
             SelectionChanged="NavView_SelectionChanged"
             BackRequested="NavView_BackRequested">

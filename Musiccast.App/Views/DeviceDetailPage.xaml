@@ -9,7 +9,9 @@
 	xmlns:helpers="using:Musiccast.App.Helpers"
 
     mc:Ignorable="d">
-
+    <Page.Resources>
+        <helpers:BooleanToColorConverter x:Key="BooleanToColorConverter" />
+    </Page.Resources>
 	
     <Grid Padding="24">
         <Grid.RowDefinitions>
@@ -81,7 +83,7 @@
                             <DataTemplate x:DataType="models:Input">
                                 <StackPanel Width="96" Height="96" Margin="4"
                                             CornerRadius="10" Padding="8"
-                                            Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                            Background="{x:Bind IsSelected, Converter={StaticResource BooleanToColorConverter}, Mode=OneWay}"
                                             HorizontalAlignment="Stretch"
                                             VerticalAlignment="Stretch">
                                     <FontIcon Glyph="{x:Bind Icon}" FontSize="24"
@@ -105,7 +107,7 @@
                             <DataTemplate x:DataType="models:Preset">
                                 <StackPanel Width="200" Height="100" Margin="4"
                                             CornerRadius="10" Padding="12"
-                                            Background="{ThemeResource ControlFillColorDefaultBrush}">
+                                            Background="{x:Bind IsSelected, Converter={StaticResource BooleanToColorConverter}, Mode=OneWay}">
                                     <TextBlock Text="{x:Bind Text}"
                                                Style="{StaticResource BodyStrongTextBlockStyle}"
                                                TextTrimming="CharacterEllipsis" />

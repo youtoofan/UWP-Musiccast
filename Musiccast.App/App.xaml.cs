@@ -54,7 +54,9 @@ public partial class App : Application
     private void StartUDPListener()
     {
         if (_udpListener != null)
+        {
             return;
+        }
 
         _udpListener = new UDPListener();
         _udpListener.DeviceNotificationRecieved += HandleUDP;

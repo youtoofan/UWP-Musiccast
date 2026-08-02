@@ -13,7 +13,9 @@ namespace Musiccast.App.Helpers
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             if (value == null)
+            {
                 return new SolidColorBrush(Colors.Transparent);
+            }
 
             var isTrue = (bool)value;
             return isTrue
@@ -30,7 +32,10 @@ namespace Musiccast.App.Helpers
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             if (value is bool b)
+            {
                 return b ? 1.0 : 0.4;
+            }
+
             return 0.4;
         }
 
